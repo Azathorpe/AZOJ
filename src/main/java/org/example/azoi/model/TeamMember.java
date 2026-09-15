@@ -1,37 +1,29 @@
 package org.example.azoi.model;
 
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Embedded;
-import org.springframework.data.relational.core.mapping.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 import java.time.Instant;
 
-@NullMarked
+@Entity
 @Table(name = "team_members", schema = "azoi")
 public class TeamMember {
-    @Nullable
-    @Id
-    @Embedded.Nullable
+    @EmbeddedId
     private TeamMemberId id;
 
-    private Byte role = 0;
+    @Column(name = "role", nullable = false)
+    private Byte role;
 
-    private Instant joinedAt = Instant.now();
+    @Column(name = "joined_at", nullable = false)
+    private Instant joinedAt;
 
-    public TeamMember(@Nullable TeamMemberId id, Byte role, Instant joinedAt) {
-        this.id = id;
-        this.role = role;
-        this.joinedAt = joinedAt;
-    }
-
-    @Nullable
     public TeamMemberId getId() {
         return id;
     }
 
-    public void setId(@Nullable TeamMemberId id) {
+    public void setId(TeamMemberId id) {
         this.id = id;
     }
 

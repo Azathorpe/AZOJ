@@ -1,18 +1,20 @@
 package org.example.azoi.model;
 
-import org.jspecify.annotations.NullMarked;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
+import jakarta.persistence.*;
 
-@NullMarked
+@Entity
 @Table(name = "roles", schema = "azoi")
 public class Role {
     @Id
-    private Long id = 0L;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Long id;
 
-    private String code = "";
+    @Column(name = "code", nullable = false, length = 32)
+    private String code;
 
-    private String name = "";
+    @Column(name = "name", nullable = false, length = 64)
+    private String name;
 
     public Long getId() {
         return id;

@@ -1,28 +1,31 @@
 package org.example.azoi.model;
 
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
+import jakarta.persistence.*;
 
 import java.time.Instant;
 
-@NullMarked
+@Entity
 @Table(name = "teams", schema = "azoi")
 public class Team {
     @Id
-    private Long id = 0L;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Long id;
 
-    private String name = "";
+    @Column(name = "name", nullable = false, length = 64)
+    private String name;
 
-    @Nullable
+    @Column(name = "description")
     private String description;
 
-    private Long ownerId = 0L;
+    @Column(name = "owner_id", nullable = false)
+    private Long ownerId;
 
-    private Byte type = 0;
+    @Column(name = "type", nullable = false)
+    private Byte type;
 
-    private Instant createdAt = Instant.now();
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
 
     public Long getId() {
         return id;
@@ -40,12 +43,11 @@ public class Team {
         this.name = name;
     }
 
-    @Nullable
     public String getDescription() {
         return description;
     }
 
-    public void setDescription(@Nullable String description) {
+    public void setDescription(String description) {
         this.description = description;
     }
 

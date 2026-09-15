@@ -1,55 +1,72 @@
 package org.example.azoi.model;
 
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
+import jakarta.persistence.*;
+import org.example.azoi.dto.userdto.UserDTO;
 
 import java.time.Instant;
 
-@NullMarked
+@Entity
 @Table(name = "users", schema = "azoi")
 public class User {
     @Id
-    private Long id = 0L;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Long id;
 
-    private String username = "";
+    @Column(name = "username", nullable = false, length = 32)
+    private String username;
 
-    private String email = "";
+    @Column(name = "email", nullable = false, length = 128)
+    private String email;
 
-    private String passwordHash = "";
+    @Column(name = "password_hash", nullable = false, length = 100)
+    private String passwordHash;
 
-    @Nullable
+    @Column(name = "nickname", length = 64)
     private String nickname;
 
-    @Nullable
+    @Column(name = "avatar_url")
     private String avatarUrl;
 
-    private Byte role = 0;
+    @Column(name = "role", nullable = false)
+    private Byte role;
 
-    private Integer rating = 0;
+    @Column(name = "rating", nullable = false)
+    private Integer rating;
 
-    private Integer solvedCount = 0;
+    @Column(name = "solved_count", nullable = false)
+    private Integer solvedCount;
 
-    private Integer submitCount = 0;
+    @Column(name = "submit_count", nullable = false)
+    private Integer submitCount;
 
-    private Boolean isBanned = false;
+    @Column(name = "is_banned", nullable = false)
+    private Boolean isBanned;
 
-    @Nullable
+    @Column(name = "ban_reason")
     private String banReason;
 
-    @Nullable
+    @Column(name = "last_login_at")
     private Instant lastLoginAt;
 
-    @Nullable
+    @Column(name = "last_login_ip", length = 45)
     private String lastLoginIp;
 
-    private Instant createdAt = Instant.now();
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
 
-    private Instant updatedAt = Instant.now();
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
 
-    @Nullable
+    @Column(name = "deleted_at")
     private Instant deletedAt;
+
+    public User() {
+    }
+
+    public User(UserDTO user) {
+
+    }
 
     public Long getId() {
         return id;
@@ -83,21 +100,19 @@ public class User {
         this.passwordHash = passwordHash;
     }
 
-    @Nullable
     public String getNickname() {
         return nickname;
     }
 
-    public void setNickname(@Nullable String nickname) {
+    public void setNickname(String nickname) {
         this.nickname = nickname;
     }
 
-    @Nullable
     public String getAvatarUrl() {
         return avatarUrl;
     }
 
-    public void setAvatarUrl(@Nullable String avatarUrl) {
+    public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
     }
 
@@ -141,30 +156,27 @@ public class User {
         this.isBanned = isBanned;
     }
 
-    @Nullable
     public String getBanReason() {
         return banReason;
     }
 
-    public void setBanReason(@Nullable String banReason) {
+    public void setBanReason(String banReason) {
         this.banReason = banReason;
     }
 
-    @Nullable
     public Instant getLastLoginAt() {
         return lastLoginAt;
     }
 
-    public void setLastLoginAt(@Nullable Instant lastLoginAt) {
+    public void setLastLoginAt(Instant lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
     }
 
-    @Nullable
     public String getLastLoginIp() {
         return lastLoginIp;
     }
 
-    public void setLastLoginIp(@Nullable String lastLoginIp) {
+    public void setLastLoginIp(String lastLoginIp) {
         this.lastLoginIp = lastLoginIp;
     }
 
@@ -184,12 +196,11 @@ public class User {
         this.updatedAt = updatedAt;
     }
 
-    @Nullable
     public Instant getDeletedAt() {
         return deletedAt;
     }
 
-    public void setDeletedAt(@Nullable Instant deletedAt) {
+    public void setDeletedAt(Instant deletedAt) {
         this.deletedAt = deletedAt;
     }
 

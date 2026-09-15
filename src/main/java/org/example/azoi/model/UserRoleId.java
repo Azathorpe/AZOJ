@@ -1,13 +1,19 @@
 package org.example.azoi.model;
 
-import org.jspecify.annotations.NullMarked;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 
-@NullMarked
+import java.io.Serializable;
+import java.util.Objects;
 
-public class UserRoleId {
-    private Long userId = 0L;
+@Embeddable
+public class UserRoleId implements Serializable {
+    private static final long serialVersionUID = 8511661502422155379L;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
-    private Long roleId = 0L;
+    @Column(name = "role_id", nullable = false)
+    private Long roleId;
 
     public Long getUserId() {
         return userId;
@@ -25,4 +31,17 @@ public class UserRoleId {
         this.roleId = roleId;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserRoleId entity = (UserRoleId) o;
+        return Objects.equals(this.userId, entity.userId) &&
+                Objects.equals(this.roleId, entity.roleId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(userId, roleId);
+    }
 }

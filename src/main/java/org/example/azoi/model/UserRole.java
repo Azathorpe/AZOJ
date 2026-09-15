@@ -1,30 +1,22 @@
 package org.example.azoi.model;
 
-import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Embedded;
-import org.springframework.data.relational.core.mapping.Table;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
-@NullMarked
+@Entity
 @Table(name = "user_roles", schema = "azoi")
 public class UserRole {
-    @Nullable
-    @Id
-    @Embedded.Nullable
+    @EmbeddedId
     private UserRoleId id;
 
-    public UserRole(@Nullable UserRoleId id) {
-        this.id = id;
-    }
-
-    @Nullable
     public UserRoleId getId() {
         return id;
     }
 
-    public void setId(@Nullable UserRoleId id) {
+    public void setId(UserRoleId id) {
         this.id = id;
     }
 
+    //TODO [逆向工程] 从数据库生成列
 }
