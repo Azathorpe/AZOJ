@@ -25,17 +25,22 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    /**
-     * 通过id获取用户
-     * @param id id
-     * @return 用户
-     */
     @Override
     public String getUserById(Long id){
         List<User> userById = userRepository.getUserById(id);
         if(userById.isEmpty())
             return JSON.toJSONString(new Result<User>(null, Result.FAIL, "User not found"));
         return JSON.toJSONString(new Result<>(userById.get(0), Result.SUCCESS, "ok"));
+    }
+
+    @Override
+    public String getUserInfoById(Long id) {
+        return "";
+    }
+
+    @Override
+    public String getCurrentUser(Long id) {
+        return "";
     }
 
     @Override
@@ -54,4 +59,11 @@ public class UserServiceImpl implements UserService {
         User save = userRepository.save(user);
         return JSON.toJSONString(new Result<>(save, Result.SUCCESS, "success"));
     }
+
+    @Override
+    public String resetPassword(Long id) {
+        return "";
+    }
+
+
 }
