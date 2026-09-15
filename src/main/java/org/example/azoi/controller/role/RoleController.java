@@ -22,16 +22,16 @@ public class RoleController {
 
     @PostMapping("/add")
     public String addRole(@RequestBody Role role) {
-        return "NOT IMPLEMENTED";
+        return roleService.addRole(role);
     }
 
     @PostMapping("/update")
     public String updateRole(@RequestBody Role role) {
-        return "NOT IMPLEMENTED";
+        return roleService.updateRole(role);
     }
 
     @DeleteMapping("/delete")
     public String deleteRole(@RequestBody Role role) {
-        return "NOT IMPLEMENTED";
+        return roleService.deleteRole(role.getId());
     }
 }
