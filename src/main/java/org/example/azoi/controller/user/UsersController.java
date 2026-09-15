@@ -1,4 +1,4 @@
-package org.example.azoi.controller;
+package org.example.azoi.controller.user;
 
 import org.springframework.stereotype.Controller;
 

@@ -1,4 +1,4 @@
-package org.example.azoi.controller;
+package org.example.azoi.controller.user;
 
 import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.service.impl.UserServiceImpl;
@@ -30,7 +30,7 @@ public class UserController {
         return userServiceImpl.registerUser(user);
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public String removeUser(@RequestParam Long userId) {
         return userServiceImpl.deleteUser(userId);
     }
