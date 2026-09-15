@@ -37,12 +37,6 @@ public class UserController {
 
     @PostMapping("/login")
     public String login(@RequestBody UserDTO user) {
-        //todo: impl
-        return "NOT IMPLEMENTED";
-    }
-
-    @PostMapping("/current")
-    public String currentUser(@RequestBody UserDTO user) {
-        return "NOT IMPLEMENTED";
+        return userServiceImpl.loginUser(user);
     }
 }

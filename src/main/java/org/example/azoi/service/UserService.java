@@ -42,4 +42,6 @@ public interface UserService {
      * @return
      */
     String deleteUser(Long id);
+
+    String loginUser(UserDTO user);
 }

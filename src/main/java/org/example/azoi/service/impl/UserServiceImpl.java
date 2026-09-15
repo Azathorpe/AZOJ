@@ -66,6 +66,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public String loginUser(UserDTO user) {
+        List<User> usersByUsername = userRepository.getUsersByUsername(user.getUsername());
+        for(User u : usersByUsername){
+            if(passwordEncoder.matches(user.getPassword(), u.getPasswordHash()))
+                return JSON.toJSONString(new Result<User>(null, Result.SUCCESS, "User logged in"));
+        }
+        return  JSON.toJSONString(new Result<User>(null, Result.FAIL, "User not found or password incorrect"));
+    }
+
+    @Override
     @Transactional
     public String registerUser(UserDTO user){
         User saver = new User();
@@ -84,6 +94,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String resetPassword(Long id) {
+        //todo: 重置密码
         return "";
     }
 
