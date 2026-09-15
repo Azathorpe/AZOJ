@@ -1,6 +1,6 @@
 package org.example.azoi.controller;
 
-import org.example.azoi.dto.userdto.UserDTO;
+import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.service.impl.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,17 +17,22 @@ public class UserController {
 
     @GetMapping("/getUser")
     public String getUser(@RequestParam Long id) {
-        return userServiceImpl.getUserById(id);
+        return userServiceImpl.getCurrentUser(id);
     }
 
     @GetMapping("/{userId}")
     public String getUserInfo(@PathVariable Long userId) {
-        return userServiceImpl.getUserById(userId);
+        return userServiceImpl.getUserInfoById(userId);
     }
 
     @PostMapping("/register")
     public String registerUser(@RequestBody UserDTO user) {
         return userServiceImpl.registerUser(user);
+    }
+
+    @PostMapping("/delete")
+    public String removeUser(@RequestParam Long userId) {
+        return userServiceImpl.deleteUser(userId);
     }
 
     @PostMapping("/login")

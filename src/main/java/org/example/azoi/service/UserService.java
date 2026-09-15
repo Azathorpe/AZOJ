@@ -1,6 +1,6 @@
 package org.example.azoi.service;
 
-import org.example.azoi.dto.userdto.UserDTO;
+import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.model.User;
 
 public interface UserService {
@@ -35,4 +35,11 @@ public interface UserService {
      * @return
      */
     String getCurrentUser(Long id);
+
+    /**
+     * 删除用户
+     * @param id
+     * @return
+     */
+    String deleteUser(Long id);
 }

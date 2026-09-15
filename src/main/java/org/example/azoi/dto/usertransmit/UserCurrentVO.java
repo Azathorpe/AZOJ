@@ -1,82 +1,44 @@
-package org.example.azoi.model;
+package org.example.azoi.dto.usertransmit;
 
-import jakarta.persistence.*;
+import org.example.azoi.model.User;
 
 import java.time.Instant;
 
-@Entity
-@Table(name = "users", schema = "azoi")
-public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Long id;
-
-    @Column(name = "username", nullable = false, length = 32)
+public class UserCurrentVO {
     private String username;
-
-    @Column(name = "email", nullable = false, length = 128)
     private String email;
-
-    @Column(name = "password_hash", nullable = false, length = 100)
-    private String passwordHash;
-
-    @Column(name = "nickname", length = 64)
     private String nickname;
-
-    @Column(name = "avatar_url")
     private String avatarUrl;
-
-    @Column(name = "role", nullable = false)
-    private Byte role = 1;
-
-    @Column(name = "rating", nullable = false)
-    private Integer rating = 0;
-
-    @Column(name = "solved_count", nullable = false)
-    private Integer solvedCount = 0;
-
-    @Column(name = "submit_count", nullable = false)
-    private Integer submitCount = 0;
-
-    @Column(name = "is_banned", nullable = false)
-    private Boolean isBanned = false;
-
-    @Column(name = "ban_reason")
+    private Byte role;
+    private Integer rating;
+    private Integer solvedCount;
+    private Integer submitCount;
+    private Boolean isBanned;
     private String banReason;
-
-    @Column(name = "last_login_at")
     private Instant lastLoginAt;
-
-    @Column(name = "last_login_ip", length = 45)
     private String lastLoginIp;
-
-    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
-
-    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
-
-    @Column(name = "deleted_at")
     private Instant deletedAt;
 
-    public User() {
+    public UserCurrentVO() {
     }
 
-
-    @PrePersist
-    public void onCreated(){
-        Instant now = Instant.now();
-        setCreatedAt(now);
-        setUpdatedAt(now);
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
+    public UserCurrentVO(User user) {
+        this.username = user.getUsername();
+        this.nickname = user.getNickname();
+        this.avatarUrl = user.getAvatarUrl();
+        this.role = user.getRole();
+        this.rating = user.getRating();
+        this.solvedCount = user.getSolvedCount();
+        this.submitCount = user.getSubmitCount();
+        this.isBanned = user.getIsBanned();
+        this.banReason = user.getBanReason();
+        this.lastLoginAt = user.getLastLoginAt();
+        this.lastLoginIp = user.getLastLoginIp();
+        this.createdAt = user.getCreatedAt();
+        this.updatedAt = user.getUpdatedAt();
+        this.deletedAt = user.getDeletedAt();
     }
 
     public String getUsername() {
@@ -93,14 +55,6 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
     }
 
     public String getNickname() {
@@ -151,12 +105,12 @@ public class User {
         this.submitCount = submitCount;
     }
 
-    public Boolean getIsBanned() {
+    public Boolean getBanned() {
         return isBanned;
     }
 
-    public void setIsBanned(Boolean isBanned) {
-        this.isBanned = isBanned;
+    public void setBanned(Boolean banned) {
+        isBanned = banned;
     }
 
     public String getBanReason() {
@@ -206,5 +160,4 @@ public class User {
     public void setDeletedAt(Instant deletedAt) {
         this.deletedAt = deletedAt;
     }
-
 }

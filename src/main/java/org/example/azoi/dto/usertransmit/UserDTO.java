@@ -1,4 +1,4 @@
-package org.example.azoi.dto.userdto;
+package org.example.azoi.dto.usertransmit;
 
 public class UserDTO {
     private String username;

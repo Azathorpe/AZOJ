@@ -1,15 +1,20 @@
 package org.example.azoi.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import org.example.azoi.dto.Result;
-import org.example.azoi.dto.userdto.UserDTO;
+import org.example.azoi.dto.usertransmit.UserCurrentVO;
+import org.example.azoi.dto.usertransmit.UserDTO;
+import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.model.User;
 import org.example.azoi.service.UserService;
 import org.example.azoi.utils.repository.UserRepository;
+import org.springframework.boot.jackson.autoconfigure.JacksonProperties;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.ref.Reference;
 import java.util.List;
 
 /**
@@ -35,12 +40,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String getUserInfoById(Long id) {
-        return "";
+        Result<User> userResult = JSON.parseObject(getUserById(id), new TypeReference<Result<User>>() {
+        });
+        if(userResult.getCode() == Result.SUCCESS)
+            return JSON.toJSONString(new Result<>(new UserInfoVO(userResult.getObj()), Result.SUCCESS, "ok"));
+        else
+            return JSON.toJSONString(new Result<User>(null, Result.FAIL, "User not found"));
     }
 
     @Override
     public String getCurrentUser(Long id) {
-        return "";
+        Result<User> userResult = JSON.parseObject(getUserById(id), new TypeReference<Result<User>>() {
+        });
+        if(userResult.getCode() == Result.SUCCESS)
+            return JSON.toJSONString(new Result<>(new UserCurrentVO(userResult.getObj()), Result.SUCCESS, "ok"));
+        else
+            return JSON.toJSONString(new Result<User>(null, Result.FAIL, "User not found"));
+    }
+
+    @Override
+    @Transactional
+    public String deleteUser(Long id) {
+        userRepository.deleteById(id);
+        return JSON.toJSONString(new Result<>(null,  Result.SUCCESS, "User deleted"));
     }
 
     @Override
@@ -57,7 +79,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public String registerUser(User user){
         User save = userRepository.save(user);
-        return JSON.toJSONString(new Result<>(save, Result.SUCCESS, "success"));
+        return JSON.toJSONString(new Result<>(new UserInfoVO(save), Result.SUCCESS, "success"));
     }
 
     @Override
