@@ -76,6 +76,10 @@ public class TeamServiceImpl implements TeamService {
         team.setOwnerId(teamDTO.getOwnerId());
 
         Team savedTeam = teamRepository.save(team);
+
+        //将创建者添加为团队成员
+        teamMemberService.addTeamMember(savedTeam.getId(), savedTeam.getOwnerId());
+
         return JSON.toJSONString(new Result<>(savedTeam, Result.SUCCESS, "Team created successfully"));
     }
 
