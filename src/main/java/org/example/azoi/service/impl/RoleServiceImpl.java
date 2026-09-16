@@ -2,6 +2,7 @@ package org.example.azoi.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import org.example.azoi.model.Role;
+import org.example.azoi.model.User;
 import org.example.azoi.service.RoleService;
 import org.example.azoi.utils.repository.RoleRepository;
 import org.springframework.stereotype.Service;
