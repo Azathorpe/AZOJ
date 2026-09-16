@@ -1,9 +1,6 @@
 package org.example.azoi.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.Instant;
 
@@ -18,6 +15,25 @@ public class TeamMember {
 
     @Column(name = "joined_at", nullable = false)
     private Instant joinedAt;
+
+    public TeamMember() {
+    }
+
+    public TeamMember(TeamMemberId id) {
+        this.id = id;
+    }
+
+    public TeamMember(TeamMemberId id, Byte role, Instant joinedAt) {
+        this.id = id;
+        this.role = role;
+        this.joinedAt = joinedAt;
+    }
+
+    @PrePersist
+    public void onCreated(){
+        joinedAt = Instant.now();
+        role = 1; // Default role is member
+    }
 
     public TeamMemberId getId() {
         return id;

@@ -15,6 +15,14 @@ public class TeamMemberId implements Serializable {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
+    public TeamMemberId() {
+    }
+
+    public TeamMemberId(Long teamId, Long userId) {
+        this.teamId = teamId;
+        this.userId = userId;
+    }
+
     public Long getTeamId() {
         return teamId;
     }
