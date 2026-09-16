@@ -87,6 +87,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public Result<UserInfoVO> registerUser(User user){
+        Result<Boolean> res = checkUsernameAndEmail(user);
+        if(res.getCode() == Result.FAIL)
+            return new Result<>(null, Result.FAIL, res.getMsg());
+
         User save = userRepository.save(user);
         return new Result<>(new UserInfoVO(save), Result.SUCCESS, "success");
     }
@@ -97,5 +101,14 @@ public class UserServiceImpl implements UserService {
         return new Result<>(null, Result.FAIL, "not impl");
     }
 
+
+    private Result<Boolean> checkUsernameAndEmail(User user){
+        if (userRepository.existsUserByUsername(user.getUsername()))
+            return new Result<>(Boolean.FALSE, Result.FAIL, "username exists");
+
+        if(userRepository.existsUserByEmail(user.getEmail()))
+            return new Result<>(Boolean.FALSE, Result.FAIL, "email exists");
+        return new Result<>(Boolean.TRUE, Result.SUCCESS, "ok");
+    }
 
 }

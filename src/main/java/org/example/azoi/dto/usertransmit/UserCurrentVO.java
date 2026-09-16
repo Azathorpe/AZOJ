@@ -39,6 +39,7 @@ public class UserCurrentVO {
         this.createdAt = user.getCreatedAt();
         this.updatedAt = user.getUpdatedAt();
         this.deletedAt = user.getDeletedAt();
+        this.email = user.getEmail();
     }
 
     public String getUsername() {
