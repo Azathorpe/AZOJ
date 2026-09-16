@@ -28,7 +28,7 @@ public class User {
     private String avatarUrl;
 
     @Column(name = "role", nullable = false)
-    private Byte role = Role.ROLE.USER;
+    private Byte role = 1;
 
     @Column(name = "rating", nullable = false)
     private Integer rating = 0;
