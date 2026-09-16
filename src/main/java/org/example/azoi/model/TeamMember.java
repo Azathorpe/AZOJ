@@ -30,9 +30,11 @@ public class TeamMember {
     }
 
     @PrePersist
-    public void onCreated(){
-        joinedAt = Instant.now();
-        role = 1; // Default role is member
+    public void onCreated() {
+        if (joinedAt == null)
+            joinedAt = Instant.now();
+        if (role == null)
+            role = (byte) 1; // Default role is member
     }
 
     public TeamMemberId getId() {
