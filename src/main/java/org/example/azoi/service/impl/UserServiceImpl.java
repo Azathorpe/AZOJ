@@ -24,13 +24,12 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RoleServiceImpl roleService;
 
-    @Autowired
-    RoleServiceImpl roleService;
-
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleServiceImpl roleService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.roleService = roleService;
     }
 
     @Override
@@ -67,6 +66,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public Result<Object> loginUser(UserDTO user, HttpServletRequest HR) {
         List<User> usersByUsername = userRepository.getUsersByUsername(user.getUsername());
         for(User u : usersByUsername){
@@ -102,6 +102,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public Result<Boolean> resetPassword(Long id) {
         //todo: 重置密码
         return new Result<>(null, Result.FAIL, "not impl");

@@ -15,6 +15,7 @@ import org.example.azoi.utils.repository.TeamRepository;
 import org.example.azoi.utils.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,13 +24,12 @@ import java.util.Optional;
 @Service
 public class TeamServiceImpl implements TeamService {
 
-    @Autowired
-    TeamMemberService teamMemberService;
-
+    private final TeamMemberService teamMemberService;
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
 
-    public TeamServiceImpl(TeamRepository teamRepository, UserRepository userRepository) {
+    public TeamServiceImpl(TeamMemberService teamMemberService, TeamRepository teamRepository, UserRepository userRepository) {
+        this.teamMemberService = teamMemberService;
         this.teamRepository = teamRepository;
         this.userRepository = userRepository;
     }
@@ -65,6 +65,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
+    @Transactional
     public Result<Team> createTeam(TeamDTO teamDTO) {
         Team team = new Team();
         team.setName(teamDTO.getName());
@@ -81,16 +82,22 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
+    @Transactional
     public Result<Team> modifyTeam(TeamDTO teamDTO) {
+        //逻辑： 通过ownerId找到team
         Long ownerId = teamDTO.getOwnerId();
 
         Result<Team> targetTeam = teamMemberService.getUserTeam(ownerId);
+        if(targetTeam.getCode() == Result.FAIL)
+            return new Result<>(null, Result.FAIL, targetTeam.getMsg());
         Team team = targetTeam.getObj();
 
+        //查看这个所有者是否真的拥有这个Team
         Result<Team> res = isUserOwnerOfTeam(ownerId, team.getId());
         if (res.getCode() == Result.FAIL)
             return res;
 
+        //是的话就更新她的team
         //更新团队信息
         Team updatedTeam = res.getObj();
         updatedTeam.setName(teamDTO.getName());
@@ -102,6 +109,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
+    @Transactional
     public Result<Team> transferTeamOwnership(Long teamId, Long newOwnerId, Long currentOwnerId) {
         Result<Team> res = isUserOwnerOfTeam(currentOwnerId, teamId);
         if (res.getCode() == Result.FAIL)
@@ -125,6 +133,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
+    @Transactional
     public Result<Team> removeTeam(TeamUserIDDTO teamUserIDDTO) {
         Long userId = teamUserIDDTO.getUserId();
         Long teamId = teamUserIDDTO.getTeamId();

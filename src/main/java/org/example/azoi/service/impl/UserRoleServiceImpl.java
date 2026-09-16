@@ -49,6 +49,7 @@ public class UserRoleServiceImpl implements UserRoleService {
     }
 
     @Override
+    @Transactional
     public Result<Object> removeNeverUsedUserRole() {
         //todo: IMPLement logic to remove never used user roles
         return new Result<>(null, Result.FAIL, "not implement");

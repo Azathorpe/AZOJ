@@ -1,8 +1,8 @@
 package org.example.azoi.dto;
 
 /**
- * code : -1 error
- *        1  success
+ * code : -1 FAIL
+ *        1  SUCCESS
  * @param <T>
  */
 public class Result<T> {

@@ -11,7 +11,7 @@ public class TeamMember {
     private TeamMemberId id;
 
     @Column(name = "role", nullable = false)
-    private Byte role;
+    private Byte role = 1;
 
     @Column(name = "joined_at", nullable = false)
     private Instant joinedAt;
@@ -21,6 +21,10 @@ public class TeamMember {
 
     public TeamMember(TeamMemberId id) {
         this.id = id;
+    }
+
+    public TeamMember(Long teamId, Long userId){
+        this.id = new TeamMemberId(teamId, userId);
     }
 
     public TeamMember(TeamMemberId id, Byte role, Instant joinedAt) {
@@ -33,8 +37,6 @@ public class TeamMember {
     public void onCreated() {
         if (joinedAt == null)
             joinedAt = Instant.now();
-        if (role == null)
-            role = (byte) 1; // Default role is member
     }
 
     public TeamMemberId getId() {

@@ -8,6 +8,7 @@ import org.example.azoi.service.TeamMemberService;
 import org.example.azoi.utils.repository.TeamMemberRepository;
 import org.example.azoi.utils.repository.TeamRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,15 +25,17 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     }
 
     @Override
+    @Transactional
     public Result<String> addTeamMember(Long teamId, Long userId) {
         teamMemberRepository.save(new TeamMember(new TeamMemberId(teamId, userId)));
         return new Result<>(null, Result.SUCCESS, "Member added successfully");
     }
 
     @Override
+    @Transactional
     public Result<String> removeTeamMember(Long teamId, Long userId) {
         //TODO: 增加校验模块
-        teamMemberRepository.delete(new TeamMember(new TeamMemberId(teamId, userId)));
+        teamMemberRepository.delete(new TeamMember(teamId, userId));
         return new Result<>(null, Result.SUCCESS, "Member removed successfully");
     }
 
