@@ -9,6 +9,7 @@ import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.model.User;
 import org.example.azoi.service.UserService;
 import org.example.azoi.utils.repository.UserRepository;
+import org.example.azoi.utils.repository.UserRoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jackson.autoconfigure.JacksonProperties;
 import org.springframework.security.crypto.password.PasswordEncoder;

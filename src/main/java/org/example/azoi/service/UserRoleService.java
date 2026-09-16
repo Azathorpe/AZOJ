@@ -14,7 +14,21 @@ public interface UserRoleService {
      */
     String addUserRole(Long userId, Long roleId);
 
+
+    /**
+     * 当用户注销的时候，需要删除用户的角色
+     * @param userId
+     * @param roleId
+     * @return
+     */
     String removeUserRole(Long userId, Long roleId);
+
+
+    /**
+     * 清除没有被使用的角色（admin）
+     * @return
+     */
+    String removeNeverUsedUserRole();
 
     String getUserRoles(Long userId);
 

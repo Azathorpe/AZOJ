@@ -2,6 +2,8 @@ package org.example.azoi.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import org.example.azoi.dto.Result;
+import org.example.azoi.dto.usertransmit.UserInfoVO;
+import org.example.azoi.model.Role;
 import org.example.azoi.model.User;
 import org.example.azoi.model.UserRole;
 import org.example.azoi.model.UserRoleId;
@@ -37,20 +39,35 @@ public class UserRoleServiceImpl implements UserRoleService {
     }
 
     @Override
+    public String removeNeverUsedUserRole() {
+        //todo: IMPLement logic to remove never used user roles
+        return "";
+    }
+
+    @Override
     @Transactional
     public String getUserRoles(Long userId) {
-        List<UserRole> userRoleByIdUserId = userRoleRepository.getUserRoleById_UserId(userId);
-        if(userRoleByIdUserId.isEmpty())
+        //通过获取Userid 然后查UserRole获取Roleid 然后查Role表获取Role信息
+        //所以我们应该通过连接表来查询
+        List<Object[]> result = userRoleRepository.findAllWithRoleLeft();
+        List<Role> roles = result.stream()
+                .filter(row -> ((UserRole) row[0]).getId().getUserId().equals(userId))
+                .map(row -> (Role) row[1])
+                .toList();
+        if(roles.isEmpty())
             return JSON.toJSONString(new Result<>(null, Result.FAIL, "No roles found for user"));
-        return JSON.toJSONString(new Result<>(userRoleByIdUserId, Result.SUCCESS, "ok"));
+        return JSON.toJSONString(new Result<>(roles, Result.SUCCESS, "ok"));
     }
 
     @Override
     @Transactional
     public String getRoleUsers(Long roleId) {
-        List<UserRole> roleUsers = userRoleRepository.getUserRolesById_RoleId(roleId);
-        if(roleUsers.isEmpty())
+        List<User> result = userRoleRepository.findUsersByRoleId(roleId);
+        List<UserInfoVO> users = result.stream()
+                .map(UserInfoVO::new)
+                .toList();
+        if(users.isEmpty())
             return JSON.toJSONString(new Result<>(null, Result.FAIL, "No users found for role"));
-        return JSON.toJSONString(new Result<>(roleUsers, Result.SUCCESS, "ok"));
+        return JSON.toJSONString(new Result<>(users, Result.SUCCESS, "ok"));
     }
 }

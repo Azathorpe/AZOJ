@@ -1,6 +1,7 @@
 package org.example.azoi.controller.user;
 
 import org.example.azoi.dto.usertransmit.UserDTO;
+import org.example.azoi.service.impl.UserRoleServiceImpl;
 import org.example.azoi.service.impl.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,9 @@ public class UserController {
     @Autowired
     UserServiceImpl userServiceImpl;
 
+    @Autowired
+    UserRoleServiceImpl userRoleService;
+
     @GetMapping("/getUser")
     public String getUser(@RequestParam Long id) {
         return userServiceImpl.getCurrentUser(id);
@@ -23,6 +27,16 @@ public class UserController {
     @GetMapping("/{userId}")
     public String getUserInfo(@PathVariable Long userId) {
         return userServiceImpl.getUserInfoById(userId);
+    }
+
+    @GetMapping("/getUserRole")
+    public String getUserRole(@RequestParam Long userId) {
+        return userRoleService.getUserRoles(userId);
+    }
+
+    @GetMapping("/getRoleUser")
+    public String getRoleUser(@RequestParam Long roleId) {
+        return userRoleService.getRoleUsers(roleId);
     }
 
     @PostMapping("/register")

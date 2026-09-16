@@ -1,8 +1,6 @@
 package org.example.azoi.model;
 
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "user_roles", schema = "azoi")
@@ -18,5 +16,13 @@ public class UserRole {
         this.id = id;
     }
 
-    //TODO [逆向工程] 从数据库生成列
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("userId")
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("roleId")
+    @JoinColumn(name = "role_id")
+    private Role role;
 }
