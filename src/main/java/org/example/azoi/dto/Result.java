@@ -2,7 +2,7 @@ package org.example.azoi.dto;
 
 /**
  * code : -1 error
- *        0  success
+ *        1  success
  * @param <T>
  */
 public class Result<T> {
