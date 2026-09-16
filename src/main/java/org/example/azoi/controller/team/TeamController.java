@@ -27,6 +27,7 @@ public class TeamController {
 
     @PostMapping("/joinTeam")
     public String joinTeam(@RequestBody TeamUserIDDTO teamUserIDDTO) {
+        //todo: 使用序列化而不是STring
         return "join team: (not impl)" + teamUserIDDTO.getTeamId();
     }
 
