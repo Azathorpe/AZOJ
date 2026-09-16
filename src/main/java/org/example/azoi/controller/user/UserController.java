@@ -1,6 +1,7 @@
 package org.example.azoi.controller.user;
 
 import com.alibaba.fastjson.JSON;
+import jakarta.servlet.http.HttpServletRequest;
 import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.service.UserRoleService;
 import org.example.azoi.service.UserService;
@@ -46,13 +47,14 @@ public class UserController {
         return JSON.toJSONString(userService.registerUser(user));
     }
 
+    ///TODO：可以考虑是否是用软删除的方式
     @DeleteMapping("/delete")
     public String removeUser(@RequestParam Long userId) {
         return JSON.toJSONString(userService.deleteUser(userId));
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody UserDTO user) {
-        return JSON.toJSONString(userService.loginUser(user));
+    public String login(@RequestBody UserDTO user, HttpServletRequest httpServletRequest) {
+        return JSON.toJSONString(userService.loginUser(user, httpServletRequest));
     }
 }

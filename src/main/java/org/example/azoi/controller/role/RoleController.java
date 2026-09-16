@@ -34,6 +34,7 @@ public class RoleController {
         return JSON.toJSONString(roleService.updateRole(role));
     }
 
+    ///TODO：可以考虑是否是用软删除的方式
     @DeleteMapping("/delete")
     public String deleteRole(@RequestBody Role role) {
         return JSON.toJSONString((roleService.deleteRole(role.getId())));

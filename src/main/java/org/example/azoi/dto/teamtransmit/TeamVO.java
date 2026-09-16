@@ -5,6 +5,7 @@ import org.example.azoi.dto.usertransmit.UserSimpleInfoVO;
 import org.example.azoi.model.Team;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TeamVO {
@@ -14,7 +15,7 @@ public class TeamVO {
     private Instant createdAt;
 
     private UserInfoVO creatorInfo;
-    private List<UserSimpleInfoVO> members;
+    private List<UserSimpleInfoVO> members = new ArrayList<>();
 
     public TeamVO() {
     }

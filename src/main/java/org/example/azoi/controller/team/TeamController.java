@@ -40,6 +40,7 @@ public class TeamController {
         return JSON.toJSONString(teamService.modifyTeam(teamDTO));
     }
 
+    ///TODO：可以考虑是否是用软删除的方式
     @DeleteMapping("/remove")
     public String removeTeam(@RequestBody TeamUserIDDTO teamUserIDDTO) {
         return JSON.toJSONString(teamService.removeTeam(teamUserIDDTO));

@@ -1,5 +1,6 @@
 package org.example.azoi.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.example.azoi.dto.Result;
 import org.example.azoi.dto.usertransmit.UserCurrentVO;
 import org.example.azoi.dto.usertransmit.UserDTO;
@@ -51,5 +52,5 @@ public interface UserService {
      */
     Result<String> deleteUser(Long id);
 
-    Result<Object> loginUser(UserDTO user);
+    Result<Object> loginUser(UserDTO user, HttpServletRequest HR);
 }
