@@ -27,6 +27,23 @@ public class Team {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    public Team() {
+    }
+
+    public Team(Long id, String name, String description, Long ownerId, Byte type, Instant createdAt) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.ownerId = ownerId;
+        this.type = type;
+        this.createdAt = createdAt;
+    }
+
+    @PrePersist
+    public void onCreated(){
+        this.createdAt = Instant.now();
+    }
+
     public Long getId() {
         return id;
     }
