@@ -8,6 +8,8 @@ import org.example.azoi.model.User;
 import org.example.azoi.model.UserRole;
 import org.example.azoi.model.UserRoleId;
 import org.example.azoi.service.UserRoleService;
+import org.example.azoi.utils.repository.RoleRepository;
+import org.example.azoi.utils.repository.UserRepository;
 import org.example.azoi.utils.repository.UserRoleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,17 +19,26 @@ import java.util.List;
 @Service
 public class UserRoleServiceImpl implements UserRoleService {
     private final UserRoleRepository userRoleRepository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
 
-    public UserRoleServiceImpl(UserRoleRepository userRoleRepository) {
+    public UserRoleServiceImpl(UserRoleRepository userRoleRepository, UserRepository userRepository, RoleRepository roleRepository) {
         this.userRoleRepository = userRoleRepository;
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
     }
 
     @Override
     @Transactional
     public String addUserRole(Long userId, Long roleId) {
-        UserRole userRole = new UserRole();
-        userRole.setId(new UserRoleId(userId, roleId));
-        userRoleRepository.save(userRole);
+        User user = userRepository.getReferenceById(userId);
+        Role role = roleRepository.getReferenceById(roleId);
+        UserRole ur = new UserRole();
+        ur.setId(new UserRoleId(userId, roleId));
+        ur.setUser(user);
+        ur.setRole(role);
+        userRoleRepository.save(ur);
+
         return JSON.toJSONString(new Result<>(null, Result.SUCCESS, "User role added successfully"));
     }
 

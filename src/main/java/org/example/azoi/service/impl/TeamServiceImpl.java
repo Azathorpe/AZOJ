@@ -91,7 +91,7 @@ public class TeamServiceImpl implements TeamService {
         });
         Team team = targetTeam.getObj();
 
-        Result<Team> res = isUserCreatorOfTeam(ownerId, team.getId());
+        Result<Team> res = isUserOwnerOfTeam(ownerId, team.getId());
         if (res.getCode() == Result.FAIL)
             return JSON.toJSONString(res);
 
@@ -107,7 +107,7 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     public String transferTeamOwnership(Long teamId, Long newOwnerId, Long currentOwnerId) {
-        Result<Team> res = isUserCreatorOfTeam(currentOwnerId, teamId);
+        Result<Team> res = isUserOwnerOfTeam(currentOwnerId, teamId);
         if (res.getCode() == Result.FAIL)
             return JSON.toJSONString(res);
         Team team = res.getObj();
@@ -133,7 +133,7 @@ public class TeamServiceImpl implements TeamService {
     public String removeTeam(TeamUserIDDTO teamUserIDDTO) {
         Long userId = teamUserIDDTO.getUserId();
         Long teamId = teamUserIDDTO.getTeamId();
-        Result<Team> res = isUserCreatorOfTeam(userId, teamId);
+        Result<Team> res = isUserOwnerOfTeam(userId, teamId);
         if (res.getCode() == Result.FAIL)
             return JSON.toJSONString(res);
         Team team = res.getObj();
@@ -144,13 +144,13 @@ public class TeamServiceImpl implements TeamService {
     }
 
     /**
-     * 判断当前用户是否是团队的创建者
+     * 判断当前用户是否是团队的所有者
      *
      * @param userId userId
      * @param teamId teamId
-     * @return Result<Team> 如果是团队的创建者，返回团队对象，否则返回失败信息
+     * @return Result<Team> 如果是团队的所有者，返回团队对象，否则返回失败信息
      */
-    private Result<Team> isUserCreatorOfTeam(Long userId, Long teamId) {
+    private Result<Team> isUserOwnerOfTeam(Long userId, Long teamId) {
         //校验这个团队是否存在
         Optional<Team> existingTeam = teamRepository.findById(teamId);
         if (existingTeam.isEmpty())
