@@ -1,18 +1,25 @@
 package org.example.azoi.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import org.example.azoi.dto.Result;
 import org.example.azoi.model.Team;
 import org.example.azoi.model.User;
+import org.example.azoi.service.TeamMemberService;
 import org.example.azoi.service.TeamService;
 import org.example.azoi.utils.repository.TeamRepository;
 import org.example.azoi.utils.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.lang.ref.Reference;
 import java.util.Optional;
 
 @Service
 public class TeamServiceImpl implements TeamService {
+
+    @Autowired
+    TeamMemberService teamMemberService;
 
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
@@ -66,7 +73,9 @@ public class TeamServiceImpl implements TeamService {
             return JSON.toJSONString(new Result<>(null, Result.FAIL, "New owner not found"));
 
         //校验新所有者是否为团队成员
-        //TODO : impl here
+        Result<Team> teamResult = JSON.parseObject(teamMemberService.getTeamMembers(teamId), new TypeReference<Result<Team>>() {});
+        if(teamResult.getCode() == Result.FAIL)
+            return JSON.toJSONString(new Result<>(null, Result.FAIL, "New owner is not a member of the team"));
 
         //转移所有权
         team.setOwnerId(newOwnerId);
@@ -88,9 +97,9 @@ public class TeamServiceImpl implements TeamService {
 
     /**
      * 判断当前用户是否是团队的创建者
-     * @param userId
-     * @param teamId
-     * @return
+     * @param userId userId
+     * @param teamId teamId
+     * @return Result<Team> 如果是团队的创建者，返回团队对象，否则返回失败信息
      */
     private Result<Team> isUserMemberOfTeam(Long userId, Long teamId) {
         //校验这个团队是否存在

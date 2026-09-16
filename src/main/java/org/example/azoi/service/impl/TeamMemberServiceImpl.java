@@ -51,6 +51,6 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         List<Team> res = teamRepository.getTeamById(teamMembers.get(0).getId().getTeamId());
         if(res.isEmpty())
             return JSON.toJSONString(new Result<>(null, Result.FAIL, "Team not found"));
-        return JSON.toJSONString(new Result<>(res, Result.SUCCESS, "ok"));
+        return JSON.toJSONString(new Result<>(res.get(0), Result.SUCCESS, "ok"));
     }
 }
