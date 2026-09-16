@@ -6,9 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TeamMemberRepository extends JpaRepository<TeamMember, TeamMemberId> {
-    List<TeamMember> getAllById_TeamId(Long idTeamId);
+    Optional<TeamMember> getAllById_TeamId(Long idTeamId);
 
-    List<TeamMember> getTeamMemberById_UserId(Long idUserId);
+    Optional<TeamMember> getTeamMemberById_UserId(Long idUserId);
 }

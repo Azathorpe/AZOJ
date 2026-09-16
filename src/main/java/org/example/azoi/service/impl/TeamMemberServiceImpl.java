@@ -11,6 +11,7 @@ import org.example.azoi.utils.repository.TeamRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TeamMemberServiceImpl implements TeamMemberService {
@@ -38,19 +39,21 @@ public class TeamMemberServiceImpl implements TeamMemberService {
 
     @Override
     public String getTeamMembers(Long teamId) {
-        List<TeamMember> res = teamMemberRepository.getAllById_TeamId(teamId);
-        return JSON.toJSONString(new Result<>(res, Result.SUCCESS, "ok"));
+        Optional<TeamMember> res = teamMemberRepository.getAllById_TeamId(teamId);
+        if(res.isPresent())
+            return JSON.toJSONString(new Result<>(res.get(), Result.SUCCESS, "ok"));
+        return JSON.toJSONString(new Result<>(null, Result.FAIL, "not found this team"));
     }
 
     @Override
     public String getUserTeams(Long userId) {
         //找到teamid
-        List<TeamMember> teamMembers = teamMemberRepository.getTeamMemberById_UserId(userId);
+        Optional<TeamMember> teamMembers = teamMemberRepository.getTeamMemberById_UserId(userId);
         if(teamMembers.isEmpty())
             return JSON.toJSONString(new Result<>(null, Result.FAIL, "User is not a member of any team"));
-        List<Team> res = teamRepository.getTeamById(teamMembers.get(0).getId().getTeamId());
+        Optional<Team> res = teamRepository.getTeamById(teamMembers.get().getId().getTeamId());
         if(res.isEmpty())
             return JSON.toJSONString(new Result<>(null, Result.FAIL, "Team not found"));
-        return JSON.toJSONString(new Result<>(res.get(0), Result.SUCCESS, "ok"));
+        return JSON.toJSONString(new Result<>(res.get(), Result.SUCCESS, "ok"));
     }
 }

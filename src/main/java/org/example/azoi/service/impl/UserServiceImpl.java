@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.ref.Reference;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 实际处理所有的用户请求(s, no s)
@@ -37,10 +38,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String getUserById(Long id){
-        List<User> userById = userRepository.getUserById(id);
+        Optional<User> userById = userRepository.getUserById(id);
         if(userById.isEmpty())
             return JSON.toJSONString(new Result<User>(null, Result.FAIL, "User not found"));
-        return JSON.toJSONString(new Result<>(userById.get(0), Result.SUCCESS, "ok"));
+        return JSON.toJSONString(new Result<>(userById.get(), Result.SUCCESS, "ok"));
     }
 
     @Override

@@ -48,10 +48,10 @@ public class TeamServiceImpl implements TeamService {
         result.setTeamInfo(res.get());
 
         //找到创建者的信息
-        List<User> creator = userRepository.getUserById(res.get().getOwnerId());
+        Optional<User> creator = userRepository.getUserById(res.get().getOwnerId());
         if (creator.isEmpty())
             return JSON.toJSONString(new Result<>(null, Result.FAIL, "Creator not found, please report to admin."));
-        result.setCreatorInfo(new UserInfoVO(creator.get(0)));
+        result.setCreatorInfo(new UserInfoVO(creator.get()));
 
         //找到团队成员的信息
         Result<List<TeamMember>> teamMembersResult = JSON.parseObject(teamMemberService.getTeamMembers(teamId), new TypeReference<>() {});
@@ -59,9 +59,8 @@ public class TeamServiceImpl implements TeamService {
             return JSON.toJSONString(new Result<>(null, Result.FAIL, "Failed to get team members"));
         //FIXME: 这里可能会有性能问题，如果团队成员很多的话，建议改成批量查询
         teamMembersResult.getObj().forEach(teamMember -> {
-            List<User> member = userRepository.getUserById(teamMember.getId().getUserId());
-            if (!member.isEmpty())
-                result.getMembers().add(new UserSimpleInfoVO(member.get(0)));
+            Optional<User> member = userRepository.getUserById(teamMember.getId().getUserId());
+            member.ifPresent(user -> result.getMembers().add(new UserSimpleInfoVO(user)));
         });
 
         return JSON.toJSONString(new Result<>(result, Result.SUCCESS, "ok"));
