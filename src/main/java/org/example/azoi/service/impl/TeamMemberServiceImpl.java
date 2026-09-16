@@ -1,6 +1,5 @@
 package org.example.azoi.service.impl;
 
-import com.alibaba.fastjson.JSON;
 import org.example.azoi.dto.Result;
 import org.example.azoi.model.Team;
 import org.example.azoi.model.TeamMember;
@@ -25,35 +24,44 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     }
 
     @Override
-    public String addTeamMember(Long teamId, Long userId) {
+    public Result<String> addTeamMember(Long teamId, Long userId) {
         teamMemberRepository.save(new TeamMember(new TeamMemberId(teamId, userId)));
-        return JSON.toJSONString(new Result<>(null, Result.SUCCESS, "Member added successfully"));
+        return new Result<>(null, Result.SUCCESS, "Member added successfully");
     }
 
     @Override
-    public String removeTeamMember(Long teamId, Long userId) {
+    public Result<String> removeTeamMember(Long teamId, Long userId) {
         //TODO: 增加校验模块
         teamMemberRepository.delete(new TeamMember(new TeamMemberId(teamId, userId)));
-        return JSON.toJSONString(new Result<>(null, Result.SUCCESS, "Member removed successfully"));
+        return new Result<>(null, Result.SUCCESS, "Member removed successfully");
     }
 
     @Override
-    public String getTeamMembers(Long teamId) {
-        Optional<TeamMember> res = teamMemberRepository.getAllById_TeamId(teamId);
-        if(res.isPresent())
-            return JSON.toJSONString(new Result<>(res.get(), Result.SUCCESS, "ok"));
-        return JSON.toJSONString(new Result<>(null, Result.FAIL, "not found this team"));
+    public Result<List<TeamMember>> getTeamMembers(Long teamId) {
+        List<TeamMember> res = teamMemberRepository.getAllById_TeamId(teamId);
+        return new Result<>(res, Result.SUCCESS, "ok");
     }
 
     @Override
-    public String getUserTeams(Long userId) {
+    public Result<Boolean> isTeamMember(Long userId, Long teamId) {
+        Optional<TeamMember> teamMember = teamMemberRepository.getTeamMemberById_UserId(userId);
+        if(teamMember.isEmpty())
+            return new Result<>(Boolean.FALSE, Result.FAIL, "can't find relationship, report to admin");
+
+        if (teamMember.get().getId().getTeamId().equals(teamId))
+            return new Result<>(Boolean.TRUE, Result.SUCCESS, "ok");
+        return new Result<>(Boolean.FALSE, Result.SUCCESS, "team member not found");
+    }
+
+    @Override
+    public Result<Team> getUserTeam(Long userId) {
         //找到teamid
-        Optional<TeamMember> teamMembers = teamMemberRepository.getTeamMemberById_UserId(userId);
-        if(teamMembers.isEmpty())
-            return JSON.toJSONString(new Result<>(null, Result.FAIL, "User is not a member of any team"));
-        Optional<Team> res = teamRepository.getTeamById(teamMembers.get().getId().getTeamId());
-        if(res.isEmpty())
-            return JSON.toJSONString(new Result<>(null, Result.FAIL, "Team not found"));
-        return JSON.toJSONString(new Result<>(res.get(), Result.SUCCESS, "ok"));
+        Optional<TeamMember> teamMemberByIdUserId = teamMemberRepository.getTeamMemberById_UserId(userId);
+        if(teamMemberByIdUserId.isEmpty())
+            return new Result<>(null, Result.FAIL, "can't find connection, please report to admin.");
+
+        Optional<Team> team = teamRepository.getTeamById(teamMemberByIdUserId.get().getId().getTeamId());
+
+        return team.map(value -> new Result<>(value, Result.SUCCESS, "ok")).orElseGet(() -> new Result<>(null, Result.FAIL, "can't find team"));
     }
 }

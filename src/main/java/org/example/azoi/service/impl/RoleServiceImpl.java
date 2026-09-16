@@ -1,6 +1,7 @@
 package org.example.azoi.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import org.example.azoi.dto.Result;
 import org.example.azoi.model.Role;
 import org.example.azoi.model.User;
 import org.example.azoi.service.RoleService;
@@ -21,34 +22,34 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public String getRoles() {
+    public Result<List<Role>> getRoles() {
         Iterable<Role> all = roleRepository.findAll();
-        List<Role> list = new ArrayList<Role>();
+        List<Role> list = new ArrayList<>();
         for(Role r : all)
             list.add(r);
-        return JSON.toJSONString(list);
+        return new Result<>(list, Result.SUCCESS, "ok");
     }
 
     @Override
     @Transactional
-    public String addRole(Role role) {
-        return JSON.toJSONString(roleRepository.save(role));
+    public Result<Role> addRole(Role role) {
+        return new Result<>(roleRepository.save(role), Result.SUCCESS, "ok");
     }
 
     @Override
     @Transactional
-    public String updateRole(Role role) {
+    public Result<Role> updateRole(Role role) {
         Role existing = roleRepository.findById(role.getId())
                 .orElseThrow(() -> new RuntimeException("NOT FOUND"));
         existing.setName(role.getName());
         existing.setCode(role.getCode());
-        return JSON.toJSONString(existing);
+        return new Result<>(existing, Result.SUCCESS, "ok");
     }
 
     @Override
     @Transactional
-    public String deleteRole(Long roleId) {
+    public Result<String> deleteRole(Long roleId) {
         roleRepository.deleteById(roleId);
-        return JSON.toJSONString("role deleted");
+        return new Result<>("role deleted", Result.SUCCESS, "ok");
     }
 }

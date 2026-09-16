@@ -1,7 +1,5 @@
 package org.example.azoi.service.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
 import org.example.azoi.dto.Result;
 import org.example.azoi.dto.teamtransmit.TeamDTO;
 import org.example.azoi.dto.teamtransmit.TeamUserIDDTO;
@@ -38,36 +36,36 @@ public class TeamServiceImpl implements TeamService {
 
     //获取团队，不仅仅是团队的信息，还有创建者的详细信息和成员的简单信息
     @Override
-    public String getTeam(Long teamId) {
+    public Result<TeamVO> getTeam(Long teamId) {
         TeamVO result = new TeamVO();
 
         //获取团队信息
         Optional<Team> res = teamRepository.findById(teamId);
         if (res.isEmpty())
-            return JSON.toJSONString(new Result<>(null, Result.FAIL, "Team not found"));
+            return new Result<>(null, Result.FAIL, "Team not found");
         result.setTeamInfo(res.get());
 
         //找到创建者的信息
         Optional<User> creator = userRepository.getUserById(res.get().getOwnerId());
         if (creator.isEmpty())
-            return JSON.toJSONString(new Result<>(null, Result.FAIL, "Creator not found, please report to admin."));
+            return new Result<>(null, Result.FAIL, "Creator not found, please report to admin.");
         result.setCreatorInfo(new UserInfoVO(creator.get()));
 
         //找到团队成员的信息
-        Result<List<TeamMember>> teamMembersResult = JSON.parseObject(teamMemberService.getTeamMembers(teamId), new TypeReference<>() {});
+        Result<List<TeamMember>> teamMembersResult = teamMemberService.getTeamMembers(teamId);
         if (teamMembersResult.getCode() == Result.FAIL)
-            return JSON.toJSONString(new Result<>(null, Result.FAIL, "Failed to get team members"));
+            return new Result<>(null, Result.FAIL, "Failed to get team members");
         //FIXME: 这里可能会有性能问题，如果团队成员很多的话，建议改成批量查询
         teamMembersResult.getObj().forEach(teamMember -> {
             Optional<User> member = userRepository.getUserById(teamMember.getId().getUserId());
             member.ifPresent(user -> result.getMembers().add(new UserSimpleInfoVO(user)));
         });
 
-        return JSON.toJSONString(new Result<>(result, Result.SUCCESS, "ok"));
+        return new Result<>(result, Result.SUCCESS, "ok");
     }
 
     @Override
-    public String createTeam(TeamDTO teamDTO) {
+    public Result<Team> createTeam(TeamDTO teamDTO) {
         Team team = new Team();
         team.setName(teamDTO.getName());
         team.setDescription(teamDTO.getDescription());
@@ -79,20 +77,19 @@ public class TeamServiceImpl implements TeamService {
         //将创建者添加为团队成员
         teamMemberService.addTeamMember(savedTeam.getId(), savedTeam.getOwnerId());
 
-        return JSON.toJSONString(new Result<>(savedTeam, Result.SUCCESS, "Team created successfully"));
+        return new Result<>(savedTeam, Result.SUCCESS, "Team created successfully");
     }
 
     @Override
-    public String modifyTeam(TeamDTO teamDTO) {
+    public Result<Team> modifyTeam(TeamDTO teamDTO) {
         Long ownerId = teamDTO.getOwnerId();
 
-        Result<Team> targetTeam = JSON.parseObject(teamMemberService.getUserTeams(ownerId), new TypeReference<Result<Team>>() {
-        });
+        Result<Team> targetTeam = teamMemberService.getUserTeam(ownerId);
         Team team = targetTeam.getObj();
 
         Result<Team> res = isUserOwnerOfTeam(ownerId, team.getId());
         if (res.getCode() == Result.FAIL)
-            return JSON.toJSONString(res);
+            return res;
 
         //更新团队信息
         Team updatedTeam = res.getObj();
@@ -101,45 +98,44 @@ public class TeamServiceImpl implements TeamService {
         updatedTeam.setType(teamDTO.getType());
         Team savedTeam = teamRepository.save(updatedTeam);
 
-        return JSON.toJSONString(new Result<>(savedTeam, Result.SUCCESS, "Team updated successfully"));
+        return new Result<>(savedTeam, Result.SUCCESS, "Team updated successfully");
     }
 
     @Override
-    public String transferTeamOwnership(Long teamId, Long newOwnerId, Long currentOwnerId) {
+    public Result<Team> transferTeamOwnership(Long teamId, Long newOwnerId, Long currentOwnerId) {
         Result<Team> res = isUserOwnerOfTeam(currentOwnerId, teamId);
         if (res.getCode() == Result.FAIL)
-            return JSON.toJSONString(res);
+            return res;
         Team team = res.getObj();
 
         //校验新所有者是否存在
         Optional<User> newUser = userRepository.findById(newOwnerId);
         if (newUser.isEmpty())
-            return JSON.toJSONString(new Result<>(null, Result.FAIL, "New owner not found"));
+            return new Result<>(null, Result.FAIL, "New owner not found");
 
         //校验新所有者是否为团队成员
-        Result<Team> teamResult = JSON.parseObject(teamMemberService.getTeamMembers(teamId), new TypeReference<Result<Team>>() {
-        });
-        if (teamResult.getCode() == Result.FAIL)
-            return JSON.toJSONString(new Result<>(null, Result.FAIL, "New owner is not a member of the team"));
+        Result<Boolean> isMember = teamMemberService.isTeamMember(newOwnerId, teamId);
+        if (isMember.getCode() == Result.FAIL)
+            return new Result<>(null, Result.FAIL, "New owner is not a member of the team");
 
         //转移所有权
         team.setOwnerId(newOwnerId);
         Team savedTeam = teamRepository.save(team);
-        return JSON.toJSONString(new Result<>(savedTeam, Result.SUCCESS, "Ownership transferred successfully"));
+        return new Result<>(savedTeam, Result.SUCCESS, "Ownership transferred successfully");
     }
 
     @Override
-    public String removeTeam(TeamUserIDDTO teamUserIDDTO) {
+    public Result<Team> removeTeam(TeamUserIDDTO teamUserIDDTO) {
         Long userId = teamUserIDDTO.getUserId();
         Long teamId = teamUserIDDTO.getTeamId();
         Result<Team> res = isUserOwnerOfTeam(userId, teamId);
         if (res.getCode() == Result.FAIL)
-            return JSON.toJSONString(res);
+            return res;
         Team team = res.getObj();
 
         //删除团队
         teamRepository.delete(team);
-        return JSON.toJSONString(new Result<>(null, Result.SUCCESS, "Team removed successfully"));
+        return new Result<>(null, Result.SUCCESS, "Team removed successfully");
     }
 
     /**

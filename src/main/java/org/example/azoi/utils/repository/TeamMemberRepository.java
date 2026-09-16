@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TeamMemberRepository extends JpaRepository<TeamMember, TeamMemberId> {
-    Optional<TeamMember> getAllById_TeamId(Long idTeamId);
+    List<TeamMember> getAllById_TeamId(Long idTeamId);
 
     Optional<TeamMember> getTeamMemberById_UserId(Long idUserId);
 }

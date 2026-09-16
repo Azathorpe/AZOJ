@@ -1,7 +1,5 @@
 package org.example.azoi.service.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
 import org.example.azoi.dto.Result;
 import org.example.azoi.dto.usertransmit.UserCurrentVO;
 import org.example.azoi.dto.usertransmit.UserDTO;
@@ -9,14 +7,11 @@ import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.model.User;
 import org.example.azoi.service.UserService;
 import org.example.azoi.utils.repository.UserRepository;
-import org.example.azoi.utils.repository.UserRoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.jackson.autoconfigure.JacksonProperties;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.ref.Reference;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,53 +32,51 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String getUserById(Long id){
+    public Result<User> getUserById(Long id){
         Optional<User> userById = userRepository.getUserById(id);
         if(userById.isEmpty())
-            return JSON.toJSONString(new Result<User>(null, Result.FAIL, "User not found"));
-        return JSON.toJSONString(new Result<>(userById.get(), Result.SUCCESS, "ok"));
+            return new Result<User>(null, Result.FAIL, "User not found");
+        return new Result<>(userById.get(), Result.SUCCESS, "ok");
     }
 
     @Override
-    public String getUserInfoById(Long id) {
-        Result<User> userResult = JSON.parseObject(getUserById(id), new TypeReference<Result<User>>() {
-        });
+    public Result<UserInfoVO> getUserInfoById(Long id) {
+        Result<User> userResult = getUserById(id);
         if(userResult.getCode() == Result.SUCCESS)
-            return JSON.toJSONString(new Result<>(new UserInfoVO(userResult.getObj()), Result.SUCCESS, "ok"));
+            return new Result<>(new UserInfoVO(userResult.getObj()), Result.SUCCESS, "ok");
         else
-            return JSON.toJSONString(new Result<User>(null, Result.FAIL, "User not found"));
+            return new Result<>(null, Result.FAIL, "User not found");
     }
 
     @Override
-    public String getCurrentUser(Long id) {
-        Result<User> userResult = JSON.parseObject(getUserById(id), new TypeReference<Result<User>>() {
-        });
+    public Result<UserCurrentVO> getCurrentUser(Long id) {
+        Result<User> userResult = getUserById(id);
         if(userResult.getCode() == Result.SUCCESS)
-            return JSON.toJSONString(new Result<>(new UserCurrentVO(userResult.getObj()), Result.SUCCESS, "ok"));
+            return new Result<>(new UserCurrentVO(userResult.getObj()), Result.SUCCESS, "ok");
         else
-            return JSON.toJSONString(new Result<User>(null, Result.FAIL, "User not found"));
+            return new Result<>(null, Result.FAIL, "User not found");
     }
 
     @Override
     @Transactional
-    public String deleteUser(Long id) {
+    public Result<String> deleteUser(Long id) {
         userRepository.deleteById(id);
-        return JSON.toJSONString(new Result<>(null,  Result.SUCCESS, "User deleted"));
+        return new Result<>(null,  Result.SUCCESS, "User deleted");
     }
 
     @Override
-    public String loginUser(UserDTO user) {
+    public Result<Object> loginUser(UserDTO user) {
         List<User> usersByUsername = userRepository.getUsersByUsername(user.getUsername());
         for(User u : usersByUsername){
             if(passwordEncoder.matches(user.getPassword(), u.getPasswordHash()))
-                return JSON.toJSONString(new Result<User>(null, Result.SUCCESS, "User logged in"));
+                return new Result<>(null, Result.SUCCESS, "User logged in");
         }
-        return  JSON.toJSONString(new Result<User>(null, Result.FAIL, "User not found or password incorrect"));
+        return  new Result<>(null, Result.FAIL, "User not found or password incorrect");
     }
 
     @Override
     @Transactional
-    public String registerUser(UserDTO user){
+    public Result<UserInfoVO> registerUser(UserDTO user){
         User saver = new User();
         saver.setUsername(user.getUsername());
         saver.setEmail(user.getEmail());
@@ -93,15 +86,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public String registerUser(User user){
+    public Result<UserInfoVO> registerUser(User user){
         User save = userRepository.save(user);
-        return JSON.toJSONString(new Result<>(new UserInfoVO(save), Result.SUCCESS, "success"));
+        return new Result<>(new UserInfoVO(save), Result.SUCCESS, "success"));
     }
 
     @Override
-    public String resetPassword(Long id) {
+    public Result<Boolean> resetPassword(Long id) {
         //todo: 重置密码
-        return "";
+        return new Result<>(null, Result.FAIL, "not impl");
     }
 
 
