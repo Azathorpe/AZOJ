@@ -3,7 +3,11 @@ package org.example.azoi.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import org.example.azoi.dto.Result;
+import org.example.azoi.dto.teamtransmit.TeamVO;
+import org.example.azoi.dto.usertransmit.UserInfoVO;
+import org.example.azoi.dto.usertransmit.UserSimpleInfoVO;
 import org.example.azoi.model.Team;
+import org.example.azoi.model.TeamMember;
 import org.example.azoi.model.User;
 import org.example.azoi.service.TeamMemberService;
 import org.example.azoi.service.TeamService;
@@ -12,7 +16,7 @@ import org.example.azoi.utils.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.lang.ref.Reference;
+import java.util.List;
 import java.util.Optional;
 
 //todo: 添加管理员增删查该
@@ -30,12 +34,35 @@ public class TeamServiceImpl implements TeamService {
         this.userRepository = userRepository;
     }
 
+    //获取团队，不仅仅是团队的信息，还有创建者的详细信息和成员的简单信息
     @Override
     public String getTeam(Long teamId) {
+        TeamVO result = new TeamVO();
+
+        //获取团队信息
         Optional<Team> res = teamRepository.findById(teamId);
         if (res.isEmpty())
             return JSON.toJSONString(new Result<>(null, Result.FAIL, "Team not found"));
-        return JSON.toJSONString(new Result<>(res.get(), Result.SUCCESS, "ok"));
+        result.setTeamInfo(res.get());
+
+        //找到创建者的信息
+        List<User> creator = userRepository.getUserById(res.get().getOwnerId());
+        if (creator.isEmpty())
+            return JSON.toJSONString(new Result<>(null, Result.FAIL, "Creator not found, please report to admin."));
+        result.setCreatorInfo(new UserInfoVO(creator.get(0)));
+
+        //找到团队成员的信息
+        Result<List<TeamMember>> teamMembersResult = JSON.parseObject(teamMemberService.getTeamMembers(teamId), new TypeReference<>() {});
+        if (teamMembersResult.getCode() == Result.FAIL)
+            return JSON.toJSONString(new Result<>(null, Result.FAIL, "Failed to get team members"));
+        //FIXME: 这里可能会有性能问题，如果团队成员很多的话，建议改成批量查询
+        teamMembersResult.getObj().forEach(teamMember -> {
+            List<User> member = userRepository.getUserById(teamMember.getId().getUserId());
+            if (!member.isEmpty())
+                result.getMembers().add(new UserSimpleInfoVO(member.get(0)));
+        });
+
+        return JSON.toJSONString(new Result<>(result, Result.SUCCESS, "ok"));
     }
 
     @Override
@@ -64,7 +91,7 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public String transferTeamOwnership(Long teamId, Long newOwnerId, Long currentOwnerId) {
         Result<Team> res = isUserMemberOfTeam(currentOwnerId, teamId);
-        if(res.getCode() == Result.FAIL)
+        if (res.getCode() == Result.FAIL)
             return JSON.toJSONString(res);
         Team team = res.getObj();
 
@@ -74,8 +101,9 @@ public class TeamServiceImpl implements TeamService {
             return JSON.toJSONString(new Result<>(null, Result.FAIL, "New owner not found"));
 
         //校验新所有者是否为团队成员
-        Result<Team> teamResult = JSON.parseObject(teamMemberService.getTeamMembers(teamId), new TypeReference<Result<Team>>() {});
-        if(teamResult.getCode() == Result.FAIL)
+        Result<Team> teamResult = JSON.parseObject(teamMemberService.getTeamMembers(teamId), new TypeReference<Result<Team>>() {
+        });
+        if (teamResult.getCode() == Result.FAIL)
             return JSON.toJSONString(new Result<>(null, Result.FAIL, "New owner is not a member of the team"));
 
         //转移所有权
@@ -87,7 +115,7 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public String removeTeam(Long teamId, Long userId) {
         Result<Team> res = isUserMemberOfTeam(userId, teamId);
-        if(res.getCode() == Result.FAIL)
+        if (res.getCode() == Result.FAIL)
             return JSON.toJSONString(res);
         Team team = res.getObj();
 
@@ -98,6 +126,7 @@ public class TeamServiceImpl implements TeamService {
 
     /**
      * 判断当前用户是否是团队的创建者
+     *
      * @param userId userId
      * @param teamId teamId
      * @return Result<Team> 如果是团队的创建者，返回团队对象，否则返回失败信息
