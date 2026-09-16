@@ -1,6 +1,7 @@
 package org.example.azoi.controller.team;
 
-import org.example.azoi.model.Team;
+import org.example.azoi.dto.teamtransmit.TeamDTO;
+import org.example.azoi.dto.teamtransmit.TeamUserIDDTO;
 import org.example.azoi.model.User;
 import org.example.azoi.service.TeamService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,23 +22,23 @@ public class TeamController {
     }
 
     @PostMapping("/joinTeam")
-    public String joinTeam(@RequestBody Long teamId, @RequestBody User user) {
-        return "join team: " + teamId;
+    public String joinTeam(@RequestBody TeamUserIDDTO teamUserIDDTO) {
+        return "join team: " + teamUserIDDTO.getTeamId();
     }
 
     @PostMapping("/create")
-    public String createTeam(@RequestBody Team team, @RequestBody Long ownerId) {
-        return teamService.createTeam(team, ownerId);
+    public String createTeam(@RequestBody TeamDTO teamDTO) {
+        return teamService.createTeam(teamDTO);
     }
 
     @PostMapping("/modify")
-    public String modifyTeam(@RequestBody Team team, @RequestBody User user) {
-        return teamService.modifyTeam(user, team);
+    public String modifyTeam(@RequestBody TeamDTO teamDTO) {
+        return teamService.modifyTeam(teamDTO);
     }
 
     @DeleteMapping("/remove")
-    public String removeTeam(@RequestBody Long teamId, @RequestBody User user) {
-        return teamService.removeTeam(teamId, user.getId());
+    public String removeTeam(@RequestBody TeamUserIDDTO teamUserIDDTO) {
+        return teamService.removeTeam(teamUserIDDTO);
     }
 
 

@@ -3,6 +3,8 @@ package org.example.azoi.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import org.example.azoi.dto.Result;
+import org.example.azoi.dto.teamtransmit.TeamDTO;
+import org.example.azoi.dto.teamtransmit.TeamUserIDDTO;
 import org.example.azoi.dto.teamtransmit.TeamVO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.dto.usertransmit.UserSimpleInfoVO;
@@ -66,23 +68,34 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public String createTeam(Team team, Long ownerId) {
-        team.setOwnerId(ownerId);
+    public String createTeam(TeamDTO teamDTO) {
+        Team team = new Team();
+        team.setName(teamDTO.getName());
+        team.setDescription(teamDTO.getDescription());
+        team.setType(teamDTO.getType());
+        team.setOwnerId(teamDTO.getOwnerId());
+
         Team savedTeam = teamRepository.save(team);
         return JSON.toJSONString(new Result<>(savedTeam, Result.SUCCESS, "Team created successfully"));
     }
 
     @Override
-    public String modifyTeam(User user, Team team) {
-        Result<Team> res = isUserMemberOfTeam(user.getId(), team.getId());
+    public String modifyTeam(TeamDTO teamDTO) {
+        Long ownerId = teamDTO.getOwnerId();
+
+        Result<Team> targetTeam = JSON.parseObject(teamMemberService.getUserTeams(ownerId), new TypeReference<Result<Team>>() {
+        });
+        Team team = targetTeam.getObj();
+
+        Result<Team> res = isUserCreatorOfTeam(ownerId, team.getId());
         if (res.getCode() == Result.FAIL)
             return JSON.toJSONString(res);
 
         //更新团队信息
         Team updatedTeam = res.getObj();
-        updatedTeam.setName(team.getName());
-        updatedTeam.setDescription(team.getDescription());
-        updatedTeam.setType(team.getType());
+        updatedTeam.setName(teamDTO.getName());
+        updatedTeam.setDescription(teamDTO.getDescription());
+        updatedTeam.setType(teamDTO.getType());
         Team savedTeam = teamRepository.save(updatedTeam);
 
         return JSON.toJSONString(new Result<>(savedTeam, Result.SUCCESS, "Team updated successfully"));
@@ -90,7 +103,7 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     public String transferTeamOwnership(Long teamId, Long newOwnerId, Long currentOwnerId) {
-        Result<Team> res = isUserMemberOfTeam(currentOwnerId, teamId);
+        Result<Team> res = isUserCreatorOfTeam(currentOwnerId, teamId);
         if (res.getCode() == Result.FAIL)
             return JSON.toJSONString(res);
         Team team = res.getObj();
@@ -113,8 +126,10 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public String removeTeam(Long teamId, Long userId) {
-        Result<Team> res = isUserMemberOfTeam(userId, teamId);
+    public String removeTeam(TeamUserIDDTO teamUserIDDTO) {
+        Long userId = teamUserIDDTO.getUserId();
+        Long teamId = teamUserIDDTO.getTeamId();
+        Result<Team> res = isUserCreatorOfTeam(userId, teamId);
         if (res.getCode() == Result.FAIL)
             return JSON.toJSONString(res);
         Team team = res.getObj();
@@ -131,7 +146,7 @@ public class TeamServiceImpl implements TeamService {
      * @param teamId teamId
      * @return Result<Team> 如果是团队的创建者，返回团队对象，否则返回失败信息
      */
-    private Result<Team> isUserMemberOfTeam(Long userId, Long teamId) {
+    private Result<Team> isUserCreatorOfTeam(Long userId, Long teamId) {
         //校验这个团队是否存在
         Optional<Team> existingTeam = teamRepository.findById(teamId);
         if (existingTeam.isEmpty())
