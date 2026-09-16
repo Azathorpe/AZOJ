@@ -60,14 +60,10 @@ public class UserRoleServiceImpl implements UserRoleService {
     public String getUserRoles(Long userId) {
         //通过获取Userid 然后查UserRole获取Roleid 然后查Role表获取Role信息
         //所以我们应该通过连接表来查询
-        List<Object[]> result = userRoleRepository.findAllWithRoleLeft();
-        List<Role> roles = result.stream()
-                .filter(row -> ((UserRole) row[0]).getId().getUserId().equals(userId))
-                .map(row -> (Role) row[1])
-                .toList();
-        if(roles.isEmpty())
+        List<UserRole> result = userRoleRepository.getUserRoleById_UserId(userId);
+        if(result.isEmpty())
             return JSON.toJSONString(new Result<>(null, Result.FAIL, "No roles found for user"));
-        return JSON.toJSONString(new Result<>(roles, Result.SUCCESS, "ok"));
+        return JSON.toJSONString(new Result<>(result, Result.SUCCESS, "ok"));
     }
 
     @Override
