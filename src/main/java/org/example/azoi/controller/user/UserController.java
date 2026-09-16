@@ -4,9 +4,6 @@ import com.alibaba.fastjson.JSON;
 import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.service.UserRoleService;
 import org.example.azoi.service.UserService;
-import org.example.azoi.service.impl.UserRoleServiceImpl;
-import org.example.azoi.service.impl.UserServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -16,20 +13,22 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/user")
 public class UserController {
 
-    @Autowired
-    UserService userServiceImpl;
+    private final UserService userService;
+    private final UserRoleService userRoleService;
 
-    @Autowired
-    UserRoleService userRoleService;
+    public UserController(UserService userService, UserRoleService userRoleService) {
+        this.userService = userService;
+        this.userRoleService = userRoleService;
+    }
 
     @GetMapping("/getUser")
     public String getUser(@RequestParam Long id) {
-        return JSON.toJSONString(userServiceImpl.getCurrentUser(id));
+        return JSON.toJSONString(userService.getCurrentUser(id));
     }
 
     @GetMapping("/{userId}")
     public String getUserInfo(@PathVariable Long userId) {
-        return JSON.toJSONString(userServiceImpl.getUserInfoById(userId));
+        return JSON.toJSONString(userService.getUserInfoById(userId));
     }
 
     @GetMapping("/getUserRole")
@@ -44,16 +43,16 @@ public class UserController {
 
     @PostMapping("/register")
     public String registerUser(@RequestBody UserDTO user) {
-        return JSON.toJSONString(userServiceImpl.registerUser(user));
+        return JSON.toJSONString(userService.registerUser(user));
     }
 
     @DeleteMapping("/delete")
     public String removeUser(@RequestParam Long userId) {
-        return JSON.toJSONString(userServiceImpl.deleteUser(userId));
+        return JSON.toJSONString(userService.deleteUser(userId));
     }
 
     @PostMapping("/login")
     public String login(@RequestBody UserDTO user) {
-        return JSON.toJSONString(userServiceImpl.loginUser(user));
+        return JSON.toJSONString(userService.loginUser(user));
     }
 }

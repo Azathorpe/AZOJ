@@ -13,8 +13,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/role")
 public class RoleController {
 
-    @Autowired
-    RoleService roleService;
+    private final RoleService roleService;
+
+    public RoleController(RoleService roleService) {
+        this.roleService = roleService;
+    }
 
     @GetMapping("/get")
     public String getRoles() {
