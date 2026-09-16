@@ -1,5 +1,6 @@
 package org.example.azoi.controller.role;
 
+import com.alibaba.fastjson.JSON;
 import org.example.azoi.model.Role;
 import org.example.azoi.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,21 +18,21 @@ public class RoleController {
 
     @GetMapping("/get")
     public String getRoles() {
-        return roleService.getRoles();
+        return JSON.toJSONString(roleService.getRoles());
     }
 
     @PostMapping("/add")
     public String addRole(@RequestBody Role role) {
-        return roleService.addRole(role);
+        return JSON.toJSONString(roleService.addRole(role));
     }
 
     @PostMapping("/update")
     public String updateRole(@RequestBody Role role) {
-        return roleService.updateRole(role);
+        return JSON.toJSONString(roleService.updateRole(role));
     }
 
     @DeleteMapping("/delete")
     public String deleteRole(@RequestBody Role role) {
-        return roleService.deleteRole(role.getId());
+        return JSON.toJSONString((roleService.deleteRole(role.getId())));
     }
 }

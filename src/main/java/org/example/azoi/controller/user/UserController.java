@@ -1,5 +1,6 @@
 package org.example.azoi.controller.user;
 
+import com.alibaba.fastjson.JSON;
 import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.service.UserRoleService;
 import org.example.azoi.service.UserService;
@@ -23,36 +24,36 @@ public class UserController {
 
     @GetMapping("/getUser")
     public String getUser(@RequestParam Long id) {
-        return userServiceImpl.getCurrentUser(id);
+        return JSON.toJSONString(userServiceImpl.getCurrentUser(id));
     }
 
     @GetMapping("/{userId}")
     public String getUserInfo(@PathVariable Long userId) {
-        return userServiceImpl.getUserInfoById(userId);
+        return JSON.toJSONString(userServiceImpl.getUserInfoById(userId));
     }
 
     @GetMapping("/getUserRole")
     public String getUserRole(@RequestParam Long userId) {
-        return userRoleService.getUserRoles(userId);
+        return JSON.toJSONString(userRoleService.getUserRoles(userId));
     }
 
     @GetMapping("/getRoleUser")
     public String getRoleUser(@RequestParam Long roleId) {
-        return userRoleService.getRoleUsers(roleId);
+        return JSON.toJSONString(userRoleService.getRoleUsers(roleId));
     }
 
     @PostMapping("/register")
     public String registerUser(@RequestBody UserDTO user) {
-        return userServiceImpl.registerUser(user);
+        return JSON.toJSONString(userServiceImpl.registerUser(user));
     }
 
     @DeleteMapping("/delete")
     public String removeUser(@RequestParam Long userId) {
-        return userServiceImpl.deleteUser(userId);
+        return JSON.toJSONString(userServiceImpl.deleteUser(userId));
     }
 
     @PostMapping("/login")
     public String login(@RequestBody UserDTO user) {
-        return userServiceImpl.loginUser(user);
+        return JSON.toJSONString(userServiceImpl.loginUser(user));
     }
 }

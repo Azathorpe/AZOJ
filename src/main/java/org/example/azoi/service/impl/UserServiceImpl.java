@@ -88,7 +88,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public Result<UserInfoVO> registerUser(User user){
         User save = userRepository.save(user);
-        return new Result<>(new UserInfoVO(save), Result.SUCCESS, "success"));
+        return new Result<>(new UserInfoVO(save), Result.SUCCESS, "success");
     }
 
     @Override
