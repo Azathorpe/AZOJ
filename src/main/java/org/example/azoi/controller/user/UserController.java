@@ -1,11 +1,18 @@
 package org.example.azoi.controller.user;
 
-import com.alibaba.fastjson.JSON;
 import jakarta.servlet.http.HttpServletRequest;
+import org.example.azoi.dto.Result;
+import org.example.azoi.dto.usertransmit.UserCurrentVO;
 import org.example.azoi.dto.usertransmit.UserDTO;
+import org.example.azoi.dto.usertransmit.UserInfoVO;
+import org.example.azoi.model.UserRole;
 import org.example.azoi.service.UserRoleService;
 import org.example.azoi.service.UserService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 用于控制单个user相关的请求
@@ -23,38 +30,59 @@ public class UserController {
     }
 
     @GetMapping("/getUser")
-    public String getUser(@RequestParam Long id) {
-        return JSON.toJSONString(userService.getCurrentUser(id));
+    public ResponseEntity<Result<UserCurrentVO>> getUser(@RequestParam Long id) {
+        Result<UserCurrentVO> result = userService.getCurrentUser(id);
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.ok(result)
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
     @GetMapping("/{userId}")
-    public String getUserInfo(@PathVariable Long userId) {
-        return JSON.toJSONString(userService.getUserInfoById(userId));
+    public ResponseEntity<Result<UserInfoVO>> getUserInfo(@PathVariable Long userId) {
+        Result<UserInfoVO> result = userService.getUserInfoById(userId);
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.ok(result)
+                : ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
     }
 
     @GetMapping("/getUserRole")
-    public String getUserRole(@RequestParam Long userId) {
-        return JSON.toJSONString(userRoleService.getUserRoles(userId));
+    public ResponseEntity<Result<List<UserRole>>> getUserRole(@RequestParam Long userId) {
+        Result<List<UserRole>> result = userRoleService.getUserRoles(userId);
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.ok(result)
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
     @GetMapping("/getRoleUser")
-    public String getRoleUser(@RequestParam Long roleId) {
-        return JSON.toJSONString(userRoleService.getRoleUsers(roleId));
+    public ResponseEntity<Result<List<UserInfoVO>>> getRoleUser(@RequestParam Long roleId) {
+        Result<List<UserInfoVO>> result = userRoleService.getRoleUsers(roleId);
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.ok(result)
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
     @PostMapping("/register")
-    public String registerUser(@RequestBody UserDTO user) {
-        return JSON.toJSONString(userService.registerUser(user));
+    public ResponseEntity<Result<UserInfoVO>> registerUser(@RequestBody UserDTO user) {
+        Result<UserInfoVO> result = userService.registerUser(user);
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.status(HttpStatus.CREATED).body(result)
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
     ///TODO：可以考虑是否是用软删除的方式
     @DeleteMapping("/delete")
-    public String removeUser(@RequestParam Long userId) {
-        return JSON.toJSONString(userService.deleteUser(userId));
+    public ResponseEntity<Result<String>> removeUser(@RequestParam Long userId) {
+        Result<String> result = userService.deleteUser(userId);
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.ok(result)
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody UserDTO user, HttpServletRequest httpServletRequest) {
-        return JSON.toJSONString(userService.loginUser(user, httpServletRequest));
+    public ResponseEntity<Result<Object>> login(@RequestBody UserDTO user, HttpServletRequest httpServletRequest) {
+        Result<Object> result = userService.loginUser(user, httpServletRequest);
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.ok(result)
+                : ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
     }
 }
