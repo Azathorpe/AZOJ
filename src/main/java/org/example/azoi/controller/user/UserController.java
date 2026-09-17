@@ -77,6 +77,7 @@ public class UserController {
     }
 
     ///TODO：可以考虑是否是用软删除的方式
+    ///FIXME: 删除用户时应该校验一下
     @DeleteMapping("/delete")
     public ResponseEntity<Result<String>> removeUser(@RequestParam Long userId) {
         Result<String> result = userService.deleteUser(userId);
