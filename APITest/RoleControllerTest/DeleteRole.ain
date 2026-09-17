@@ -1,0 +1,16 @@
+[Host]
+http://localhost:8080/role/delete
+
+[Method]
+DELETE
+
+[body]
+{
+    "id" : 5
+}
+
+[Backend]
+curl
+
+[BackendOptions]
+-H "Content-Type: application/json"

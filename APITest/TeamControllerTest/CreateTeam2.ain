@@ -1,0 +1,19 @@
+[Host]
+http://localhost:8080/team/create
+
+[Method]
+POST
+
+[body]
+{
+"name": "今日AC",
+"description": "AC自动机",
+"type": 0,
+"ownerId": 23
+}
+
+[Backend]
+curl
+
+[BackendOptions]
+-H "Content-Type: application/json"

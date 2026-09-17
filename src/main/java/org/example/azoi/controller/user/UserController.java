@@ -5,6 +5,7 @@ import org.example.azoi.dto.Result;
 import org.example.azoi.dto.usertransmit.UserCurrentVO;
 import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
+import org.example.azoi.model.Role;
 import org.example.azoi.model.UserRole;
 import org.example.azoi.service.UserRoleService;
 import org.example.azoi.service.UserService;
@@ -17,6 +18,8 @@ import java.util.List;
 /**
  * 用于控制单个user相关的请求
  */
+
+//TODO: 添加更改用户的角色功能
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -29,6 +32,7 @@ public class UserController {
         this.userRoleService = userRoleService;
     }
 
+    //FIXME: 要不要把这里改成userId
     @GetMapping("/getUser")
     public ResponseEntity<Result<UserCurrentVO>> getUser(@RequestParam Long id) {
         Result<UserCurrentVO> result = userService.getCurrentUser(id);
@@ -45,9 +49,12 @@ public class UserController {
                 : ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
     }
 
+    //Tips: 一个用户只能有一个角色（指admin或者啥的） 但是一种角色很多人都可能有
+    //所以getUserRole返回Role 而 getRoleUser返回List<UserInfoVO>
+
     @GetMapping("/getUserRole")
-    public ResponseEntity<Result<List<UserRole>>> getUserRole(@RequestParam Long userId) {
-        Result<List<UserRole>> result = userRoleService.getUserRoles(userId);
+    public ResponseEntity<Result<Role>> getUserRole(@RequestParam Long userId) {
+        Result<Role> result = userRoleService.getUserRoles(userId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.ok(result)
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
@@ -70,6 +77,8 @@ public class UserController {
     }
 
     ///TODO：可以考虑是否是用软删除的方式
+    ///FIXME: 删除用户时应该校验一下是谁删除的
+    ///FIXME: 在用户删除时 也应该校验他是否在某个团队里面 如果是 那么请先转移团长或者解散
     @DeleteMapping("/delete")
     public ResponseEntity<Result<String>> removeUser(@RequestParam Long userId) {
         Result<String> result = userService.deleteUser(userId);
@@ -79,8 +88,8 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Result<Object>> login(@RequestBody UserDTO user, HttpServletRequest httpServletRequest) {
-        Result<Object> result = userService.loginUser(user, httpServletRequest);
+    public ResponseEntity<Result<Boolean>> login(@RequestBody UserDTO user, HttpServletRequest httpServletRequest) {
+        Result<Boolean> result = userService.loginUser(user, httpServletRequest);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.ok(result)
                 : ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);

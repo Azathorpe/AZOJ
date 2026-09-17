@@ -1,0 +1,17 @@
+[Host]
+http://localhost:8080/user/login
+
+[Method]
+POST
+
+[body]
+{
+    "username" : "Azazel",
+    "password" : "12345623"
+}
+
+[Backend]
+curl
+
+[BackendOptions]
+-H "Content-Type: application/json"

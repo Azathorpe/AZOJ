@@ -1,0 +1,17 @@
+[Host]
+http://localhost:8080/role/add
+
+[Method]
+POST
+
+[body]
+{
+    "code" : "ROCK",
+    "name" : "小石头"
+}
+
+[Backend]
+curl
+
+[BackendOptions]
+-H "Content-Type: application/json"

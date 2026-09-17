@@ -9,9 +9,10 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserRoleRepository extends JpaRepository<UserRole, UserRoleId> {
-    List<UserRole> getUserRoleById_UserId(Long idUserId);
+    Optional<UserRole> getUserRoleById_UserId(Long idUserId);
 
     List<UserRole> getUserRolesById_RoleId(Long idRoleId);
 
@@ -30,4 +31,6 @@ public interface UserRoleRepository extends JpaRepository<UserRole, UserRoleId> 
             WHERE ur.id.roleId = :roleId
             """)
     List<User> findUsersByRoleId(@Param("roleId") Long roleId);
+
+    void deleteById_UserId(Long idUserId);
 }

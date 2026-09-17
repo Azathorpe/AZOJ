@@ -6,6 +6,8 @@ import org.example.azoi.dto.teamtransmit.TeamUserIDDTO;
 import org.example.azoi.dto.teamtransmit.TeamVO;
 import org.example.azoi.model.Team;
 
+import java.util.List;
+
 public interface TeamService {
     Result<TeamVO> getTeam(Long teamId);
 
@@ -16,4 +18,6 @@ public interface TeamService {
     Result<Team> transferTeamOwnership(Long teamId, Long newOwnerId, Long currentOwnerId);
 
     Result<Team> removeTeam(TeamUserIDDTO teamUserIDDTO);
+
+    Result<List<TeamVO>> getTeams();
 }

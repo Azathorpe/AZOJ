@@ -1,0 +1,11 @@
+[Host]
+http://localhost:8080/user/getUser?id=9
+
+[Method]
+GET
+
+[Backend]
+curl
+
+[BackendOptions]
+-H "Content-Type: application/json"

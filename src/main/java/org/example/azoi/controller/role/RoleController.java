@@ -47,6 +47,7 @@ public class RoleController {
     }
 
     ///TODO：可以考虑是否是用软删除的方式
+    ///fixme: 是否要统一风格 使用parma的形式传参
     @DeleteMapping("/delete")
     public ResponseEntity<Result<String>> deleteRole(@RequestBody Role role) {
         Result<String> result = roleService.deleteRole(role.getId());

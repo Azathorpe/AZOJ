@@ -1,0 +1,17 @@
+[Host]
+http://localhost:8080/role/update
+
+[Method]
+POST
+
+[body]
+{
+    "id" : "5",
+    "name" : "摇滚🤘小石头"
+}
+
+[Backend]
+curl
+
+[BackendOptions]
+-H "Content-Type: application/json"

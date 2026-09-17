@@ -21,6 +21,7 @@ public class Team {
     @Column(name = "owner_id", nullable = false)
     private Long ownerId;
 
+    //0: 团队 1:班级
     @Column(name = "type", nullable = false)
     private Byte type;
 

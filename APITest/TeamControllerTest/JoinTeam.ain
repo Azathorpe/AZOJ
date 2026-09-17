@@ -1,0 +1,17 @@
+[Host]
+http://localhost:8080/team/joinTeam
+
+[Method]
+POST
+
+[body]
+{
+    "teamId" : 4,
+    "userId" : 22
+}
+
+[Backend]
+curl
+
+[BackendOptions]
+-H "Content-Type: application/json"

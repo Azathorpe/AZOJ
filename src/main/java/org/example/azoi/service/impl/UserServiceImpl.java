@@ -6,6 +6,8 @@ import org.example.azoi.dto.usertransmit.UserCurrentVO;
 import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.model.User;
+import org.example.azoi.service.RoleService;
+import org.example.azoi.service.UserRoleService;
 import org.example.azoi.service.UserService;
 import org.example.azoi.utils.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,12 +27,14 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final RoleServiceImpl roleService;
+    private final RoleService roleService;
+    private final UserRoleService userRoleService;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleServiceImpl roleService) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleServiceImpl roleService, UserRoleService userRoleService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleService = roleService;
+        this.userRoleService = userRoleService;
     }
 
     @Override
@@ -38,6 +43,15 @@ public class UserServiceImpl implements UserService {
         if(userById.isEmpty())
             return new Result<User>(null, Result.FAIL, "User not found");
         return new Result<>(userById.get(), Result.SUCCESS, "ok");
+    }
+
+    @Override
+    @Transactional
+    public Result<List<UserInfoVO>> registerUsers(List<UserDTO> user) {
+        List<UserInfoVO> res = new ArrayList<>();
+        for(UserDTO ud : user)
+            res.add(registerUser(ud).getObj());
+        return new Result<>(res, Result.SUCCESS, "ok");
     }
 
     @Override
@@ -62,22 +76,24 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public Result<String> deleteUser(Long id) {
         userRepository.deleteById(id);
+        //在删除用户的时候，也要把他和Role的关系删除掉
+        userRoleService.removeUserRole(id);
         return new Result<>(null,  Result.SUCCESS, "User deleted");
     }
 
     @Override
     @Transactional
-    public Result<Object> loginUser(UserDTO user, HttpServletRequest HR) {
+    public Result<Boolean> loginUser(UserDTO user, HttpServletRequest HR) {
         List<User> usersByUsername = userRepository.getUsersByUsername(user.getUsername());
         for(User u : usersByUsername){
             if(passwordEncoder.matches(user.getPassword(), u.getPasswordHash())) {
                 u.setLastLoginAt(Instant.now());
                 u.setLastLoginIp(getClientIp(HR));
                 userRepository.save(u);
-                return new Result<>(null, Result.SUCCESS, "User logged in");
+                return new Result<>(Boolean.TRUE, Result.SUCCESS, "User logged in");
             }
         }
-        return  new Result<>(null, Result.FAIL, "User not found or password incorrect");
+        return  new Result<>(Boolean.FALSE, Result.FAIL, "User not found or password incorrect");
     }
 
     @Override
@@ -98,6 +114,10 @@ public class UserServiceImpl implements UserService {
             return new Result<>(null, Result.FAIL, res.getMsg());
 
         User save = userRepository.save(user);
+
+        //注册了User之后，也同样需要把Role注册一下，默认先注册成普通用户 也就是id为1的普通用户
+        userRoleService.addUserRole(user.getId(), 1L);
+
         return new Result<>(new UserInfoVO(save), Result.SUCCESS, "success");
     }
 

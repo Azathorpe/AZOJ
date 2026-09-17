@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -76,7 +77,7 @@ public class TeamServiceImpl implements TeamService {
         Team savedTeam = teamRepository.save(team);
 
         //将创建者添加为团队成员
-        teamMemberService.addTeamMember(savedTeam.getId(), savedTeam.getOwnerId());
+        teamMemberService.addTeamMember(new TeamUserIDDTO(savedTeam.getId(), savedTeam.getOwnerId()));
 
         return new Result<>(savedTeam, Result.SUCCESS, "Team created successfully");
     }
@@ -99,10 +100,11 @@ public class TeamServiceImpl implements TeamService {
 
         //是的话就更新她的team
         //更新团队信息
+        //如果没有传信息的话 就不改
         Team updatedTeam = res.getObj();
-        updatedTeam.setName(teamDTO.getName());
-        updatedTeam.setDescription(teamDTO.getDescription());
-        updatedTeam.setType(teamDTO.getType());
+        updatedTeam.setName(teamDTO.getName() == null ? team.getName() : teamDTO.getName());
+        updatedTeam.setDescription(teamDTO.getDescription() == null ? team.getDescription() : teamDTO.getDescription());
+        updatedTeam.setType(teamDTO.getType() == null ? team.getType() : teamDTO.getType());
         Team savedTeam = teamRepository.save(updatedTeam);
 
         return new Result<>(savedTeam, Result.SUCCESS, "Team updated successfully");
@@ -144,7 +146,19 @@ public class TeamServiceImpl implements TeamService {
 
         //删除团队
         teamRepository.delete(team);
+
+        //删掉所有成员的数据
+        teamMemberService.removeAllTeamMember(teamUserIDDTO.getTeamId());
+
         return new Result<>(null, Result.SUCCESS, "Team removed successfully");
+    }
+
+    @Override
+    public Result<List<TeamVO>> getTeams() {
+        List<TeamVO> res = new ArrayList<>();
+        for (Team team : teamRepository.findAll())
+            res.add(getTeam(team.getId()).getObj());
+        return new Result<>(res, Result.SUCCESS, "ok");
     }
 
     /**

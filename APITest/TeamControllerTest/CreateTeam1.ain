@@ -1,0 +1,19 @@
+[Host]
+http://localhost:8080/team/create
+
+[Method]
+POST
+
+[body]
+{
+"name": "堕天使",
+"description": "Creator",
+"type": 0,
+"ownerId": 21
+}
+
+[Backend]
+curl
+
+[BackendOptions]
+-H "Content-Type: application/json"

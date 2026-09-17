@@ -1,0 +1,17 @@
+[Host]
+http://localhost:8080/role/get
+
+[Method]
+GET
+
+[Body]
+{
+    "name" : "obj",
+    "code" : "0X02"
+}
+
+[Backend]
+curl
+
+[BackendOptions]
+-H "Content-Type: application/json"

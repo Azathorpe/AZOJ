@@ -1,9 +1,10 @@
-# User
+[Host]
+http://localhost:8080/users/register
 
-### 注册用户:
+[Method]
+POST
 
-#### 批量注册样例
-
+[Body]
 [
 {
     "username" : "Azazel",
@@ -32,33 +33,8 @@
 }
 ]
 
-#### 单独注册样例
+[Backend]
+curl
 
-{
-    "username" : "SandBox",
-    "password" : "sandbox",
-    "email" : "box@linux.com"
-}
-
-# Team
-
-### 创建团队
-
-设定: 
-
-Azazel是一个创建者 队员是Azathorpe
-Bob是另一个创建者 队员是Computer,Doctor Li,Echo
-
-{
-"name": "堕天使",
-"description": "Creator",
-"type": 0,
-"ownerId": 21
-}
-
-{
-"name": "今日AC",
-"description": "AC自动机",
-"type": 0,
-"ownerId": 23
-}
+[BackendOptions]
+-H "Content-Type: application/json"

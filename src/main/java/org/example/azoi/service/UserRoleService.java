@@ -2,8 +2,8 @@ package org.example.azoi.service;
 
 import org.example.azoi.dto.Result;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
+import org.example.azoi.model.Role;
 import org.example.azoi.model.User;
-import org.example.azoi.model.UserRole;
 
 import java.util.List;
 
@@ -25,10 +25,9 @@ public interface UserRoleService {
      * 当用户注销的时候，需要删除用户的角色
      *
      * @param userId
-     * @param roleId
      * @return
      */
-    Result<Object> removeUserRole(Long userId, Long roleId);
+    Result<Object> removeUserRole(Long userId);
 
 
     /**
@@ -38,7 +37,7 @@ public interface UserRoleService {
      */
     Result<Object> removeNeverUsedUserRole();
 
-    Result<List<UserRole>> getUserRoles(Long userId);
+    Result<Role> getUserRoles(Long userId);
 
     Result<List<UserInfoVO>> getRoleUsers(Long roleId);
 }
