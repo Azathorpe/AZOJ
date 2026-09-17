@@ -86,8 +86,8 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Result<Object>> login(@RequestBody UserDTO user, HttpServletRequest httpServletRequest) {
-        Result<Object> result = userService.loginUser(user, httpServletRequest);
+    public ResponseEntity<Result<Boolean>> login(@RequestBody UserDTO user, HttpServletRequest httpServletRequest) {
+        Result<Boolean> result = userService.loginUser(user, httpServletRequest);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.ok(result)
                 : ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);

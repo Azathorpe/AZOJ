@@ -81,17 +81,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Result<Object> loginUser(UserDTO user, HttpServletRequest HR) {
+    public Result<Boolean> loginUser(UserDTO user, HttpServletRequest HR) {
         List<User> usersByUsername = userRepository.getUsersByUsername(user.getUsername());
         for(User u : usersByUsername){
             if(passwordEncoder.matches(user.getPassword(), u.getPasswordHash())) {
                 u.setLastLoginAt(Instant.now());
                 u.setLastLoginIp(getClientIp(HR));
                 userRepository.save(u);
-                return new Result<>(null, Result.SUCCESS, "User logged in");
+                return new Result<>(Boolean.TRUE, Result.SUCCESS, "User logged in");
             }
         }
-        return  new Result<>(null, Result.FAIL, "User not found or password incorrect");
+        return  new Result<>(Boolean.FALSE, Result.FAIL, "User not found or password incorrect");
     }
 
     @Override

@@ -56,5 +56,5 @@ public interface UserService {
      */
     Result<String> deleteUser(Long id);
 
-    Result<Object> loginUser(UserDTO user, HttpServletRequest HR);
+    Result<Boolean> loginUser(UserDTO user, HttpServletRequest HR);
 }
