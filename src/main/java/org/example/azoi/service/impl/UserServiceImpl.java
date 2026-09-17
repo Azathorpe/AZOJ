@@ -76,6 +76,8 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public Result<String> deleteUser(Long id) {
         userRepository.deleteById(id);
+        //在删除用户的时候，也要把他和Role的关系删除掉
+        userRoleService.removeUserRole(id);
         return new Result<>(null,  Result.SUCCESS, "User deleted");
     }
 
