@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserRoleServiceImpl implements UserRoleService {
@@ -57,13 +58,13 @@ public class UserRoleServiceImpl implements UserRoleService {
 
     @Override
     @Transactional
-    public Result<List<UserRole>> getUserRoles(Long userId) {
+    public Result<Role> getUserRoles(Long userId) {
         //通过获取Userid 然后查UserRole获取Roleid 然后查Role表获取Role信息
         //所以我们应该通过连接表来查询
-        List<UserRole> result = userRoleRepository.getUserRoleById_UserId(userId);
+        Optional<UserRole> result = userRoleRepository.getUserRoleById_UserId(userId);
         if(result.isEmpty())
             return new Result<>(null, Result.FAIL, "No roles found for user");
-        return new Result<>(result, Result.SUCCESS, "ok");
+        return new Result<>(result.get().getRole(), Result.SUCCESS, "ok");
     }
 
     @Override
