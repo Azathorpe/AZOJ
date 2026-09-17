@@ -35,6 +35,9 @@ public class TeamController {
     @GetMapping("/getTeams")
     public ResponseEntity<Result<List<TeamVO>>> getTeams(){
         Result<List<TeamVO>> result = teamService.getTeams();
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.ok(result)
+                : ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
     }
 
     @PostMapping("/joinTeam")
