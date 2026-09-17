@@ -18,6 +18,8 @@ import java.util.List;
 /**
  * 用于控制单个user相关的请求
  */
+
+//TODO: 添加更改用户的角色功能
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -46,6 +48,9 @@ public class UserController {
                 ? ResponseEntity.ok(result)
                 : ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
     }
+
+    //Tips: 一个用户只能有一个角色（指admin或者啥的） 但是一种角色很多人都可能有
+    //所以getUserRole返回Role 而 getRoleUser返回List<UserInfoVO>
 
     @GetMapping("/getUserRole")
     public ResponseEntity<Result<Role>> getUserRole(@RequestParam Long userId) {
