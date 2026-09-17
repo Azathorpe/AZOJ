@@ -99,10 +99,11 @@ public class TeamServiceImpl implements TeamService {
 
         //是的话就更新她的team
         //更新团队信息
+        //如果没有传信息的话 就不改
         Team updatedTeam = res.getObj();
-        updatedTeam.setName(teamDTO.getName());
-        updatedTeam.setDescription(teamDTO.getDescription());
-        updatedTeam.setType(teamDTO.getType());
+        updatedTeam.setName(teamDTO.getName() == null ? team.getName() : teamDTO.getName());
+        updatedTeam.setDescription(teamDTO.getDescription() == null ? team.getDescription() : teamDTO.getDescription());
+        updatedTeam.setType(teamDTO.getType() == null ? team.getType() : teamDTO.getType());
         Team savedTeam = teamRepository.save(updatedTeam);
 
         return new Result<>(savedTeam, Result.SUCCESS, "Team updated successfully");
