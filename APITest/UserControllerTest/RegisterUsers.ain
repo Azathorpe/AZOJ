@@ -1,0 +1,40 @@
+[Host]
+http://localhost:8080/users/register
+
+[Method]
+POST
+
+[Body]
+[
+{
+    "username" : "Azazel",
+    "password" : "123456",
+    "email" : "Azazel@Az.com"
+},{
+    "username" : "Azathorpe",
+    "password" : "123456",
+    "email" : "Azathorpe@Az.com"
+},{
+    "username" : "Bob",
+    "password" : "123456",
+    "email" : "Bob@Az.com"
+},{
+    "username" : "Computer",
+    "password" : "ENIAC",
+    "email" : "uarc@pobox.upenn.edu"
+},{
+    "username" : "Doctor Li",
+    "password" : "KeepHealth",
+    "email" : "doc@hospital.com"
+},{
+    "username" : "Echo",
+    "password" : "echoHelloWorld",
+    "email" : "echo@cmd.com"
+}
+]
+
+[Backend]
+curl
+
+[BackendOptions]
+-H "Content-Type: application/json"

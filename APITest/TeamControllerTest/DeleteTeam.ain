@@ -1,0 +1,17 @@
+[Host]
+http://localhost:8080/team/remove
+
+[Method]
+DELETE
+
+[body]
+{
+    "teamId" : 1,
+    "userId" : 21
+}
+
+[Backend]
+curl
+
+[BackendOptions]
+-H "Content-Type: application/json"

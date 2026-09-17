@@ -1,0 +1,18 @@
+[Host]
+http://localhost:8080/user/register
+
+[Method]
+POST
+
+[Body]
+{
+  "username": "Azathorpe",
+  "password": "12345678",
+  "email": "13490876723@qq.com"
+}
+
+[Backend]
+curl
+
+[BackendOptions]
+-H "Content-Type: application/json"

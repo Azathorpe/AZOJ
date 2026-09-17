@@ -1,0 +1,19 @@
+[Host]
+http://localhost:8080/team/create
+
+[Method]
+POST
+
+[body]
+{
+"name": "回声",
+"description": "Hello World",
+"type": 1,
+"ownerId": 26
+}
+
+[Backend]
+curl
+
+[BackendOptions]
+-H "Content-Type: application/json"
