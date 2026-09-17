@@ -1,4 +1,4 @@
-package org.example.azoi.model;
+package org.example.azoi.model.team_model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

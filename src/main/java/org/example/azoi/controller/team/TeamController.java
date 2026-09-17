@@ -4,7 +4,7 @@ import org.example.azoi.dto.Result;
 import org.example.azoi.dto.teamtransmit.TeamDTO;
 import org.example.azoi.dto.teamtransmit.TeamUserIDDTO;
 import org.example.azoi.dto.teamtransmit.TeamVO;
-import org.example.azoi.model.Team;
+import org.example.azoi.model.team_model.Team;
 import org.example.azoi.service.TeamMemberService;
 import org.example.azoi.service.TeamService;
 import org.springframework.http.HttpStatus;

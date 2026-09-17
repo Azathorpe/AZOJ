@@ -6,14 +6,13 @@ import org.example.azoi.dto.teamtransmit.TeamUserIDDTO;
 import org.example.azoi.dto.teamtransmit.TeamVO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.dto.usertransmit.UserSimpleInfoVO;
-import org.example.azoi.model.Team;
-import org.example.azoi.model.TeamMember;
-import org.example.azoi.model.User;
+import org.example.azoi.model.team_model.Team;
+import org.example.azoi.model.team_model.TeamMember;
+import org.example.azoi.model.user_model.User;
 import org.example.azoi.service.TeamMemberService;
 import org.example.azoi.service.TeamService;
 import org.example.azoi.utils.repository.TeamRepository;
 import org.example.azoi.utils.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

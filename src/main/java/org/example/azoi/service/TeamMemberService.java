@@ -2,8 +2,8 @@ package org.example.azoi.service;
 
 import org.example.azoi.dto.Result;
 import org.example.azoi.dto.teamtransmit.TeamUserIDDTO;
-import org.example.azoi.model.Team;
-import org.example.azoi.model.TeamMember;
+import org.example.azoi.model.team_model.Team;
+import org.example.azoi.model.team_model.TeamMember;
 
 import java.util.List;
 

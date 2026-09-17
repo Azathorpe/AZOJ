@@ -1,6 +1,7 @@
-package org.example.azoi.model;
+package org.example.azoi.model.user_model;
 
 import jakarta.persistence.*;
+import org.example.azoi.model.team_model.Role;
 
 @Entity
 @Table(name = "user_roles", schema = "azoi")
