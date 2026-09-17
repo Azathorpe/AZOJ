@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +39,15 @@ public class UserServiceImpl implements UserService {
         if(userById.isEmpty())
             return new Result<User>(null, Result.FAIL, "User not found");
         return new Result<>(userById.get(), Result.SUCCESS, "ok");
+    }
+
+    @Override
+    @Transactional
+    public Result<List<UserInfoVO>> registerUsers(List<UserDTO> user) {
+        List<UserInfoVO> res = new ArrayList<>();
+        for(UserDTO ud : user)
+            res.add(registerUser(ud).getObj());
+        return new Result<>(res, Result.SUCCESS, "ok");
     }
 
     @Override

@@ -7,6 +7,8 @@ import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.model.User;
 
+import java.util.List;
+
 public interface UserService {
     /**
      * 通过Id获取用户，与{@link #getUserInfoById(Long id)}不同的是 这个会返回User
@@ -15,6 +17,8 @@ public interface UserService {
      * @return
      */
     Result<User> getUserById(Long id);
+
+    Result<List<UserInfoVO>> registerUsers(List<UserDTO> user);
 
     Result<UserInfoVO> registerUser(UserDTO user);
 
