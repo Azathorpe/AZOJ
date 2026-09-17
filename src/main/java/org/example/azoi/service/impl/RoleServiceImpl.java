@@ -41,8 +41,8 @@ public class RoleServiceImpl implements RoleService {
     public Result<Role> updateRole(Role role) {
         Role existing = roleRepository.findById(role.getId())
                 .orElseThrow(() -> new RuntimeException("NOT FOUND"));
-        existing.setName(role.getName());
-        existing.setCode(role.getCode());
+        existing.setName(role.getName() == null ? existing.getName() : role.getName());
+        existing.setCode(role.getCode() == null ? existing.getCode() : role.getCode());
         return new Result<>(existing, Result.SUCCESS, "ok");
     }
 
