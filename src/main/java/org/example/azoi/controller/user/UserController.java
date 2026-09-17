@@ -77,7 +77,8 @@ public class UserController {
     }
 
     ///TODO：可以考虑是否是用软删除的方式
-    ///FIXME: 删除用户时应该校验一下
+    ///FIXME: 删除用户时应该校验一下是谁删除的
+    ///FIXME: 在用户删除时 也应该校验他是否在某个团队里面 如果是 那么请先转移团长或者解散
     @DeleteMapping("/delete")
     public ResponseEntity<Result<String>> removeUser(@RequestParam Long userId) {
         Result<String> result = userService.deleteUser(userId);
