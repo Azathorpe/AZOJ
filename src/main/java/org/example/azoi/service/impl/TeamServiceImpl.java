@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -146,6 +147,14 @@ public class TeamServiceImpl implements TeamService {
         //删除团队
         teamRepository.delete(team);
         return new Result<>(null, Result.SUCCESS, "Team removed successfully");
+    }
+
+    @Override
+    public Result<List<TeamVO>> getTeams() {
+        List<TeamVO> res = new ArrayList<>();
+        for (Team team : teamRepository.findAll())
+            res.add(getTeam(team.getId()).getObj());
+        return new Result<>(res, Result.SUCCESS, "ok");
     }
 
     /**

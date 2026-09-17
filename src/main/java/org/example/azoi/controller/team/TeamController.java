@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 //用于控制team相关的请求
 //FIXME: 这里需要校验和更改的地方挺多的
 @RestController
@@ -28,6 +30,11 @@ public class TeamController {
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.ok(result)
                 : ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
+    }
+
+    @GetMapping("/getTeams")
+    public ResponseEntity<Result<List<TeamVO>>> getTeams(){
+        Result<List<TeamVO>> result = teamService.getTeams();
     }
 
     @PostMapping("/joinTeam")

@@ -61,7 +61,7 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         //找到teamid
         Optional<TeamMember> teamMemberByIdUserId = teamMemberRepository.getTeamMemberById_UserId(userId);
         if(teamMemberByIdUserId.isEmpty())
-            return new Result<>(null, Result.FAIL, "can't find connection, please report to admin.");
+            return new Result<>(null, Result.FAIL, "can't find your team, please report to admin.");
 
         Optional<Team> team = teamRepository.getTeamById(teamMemberByIdUserId.get().getId().getTeamId());
 
