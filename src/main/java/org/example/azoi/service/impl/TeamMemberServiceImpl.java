@@ -1,40 +1,62 @@
 package org.example.azoi.service.impl;
 
 import org.example.azoi.dto.Result;
+import org.example.azoi.dto.teamtransmit.TeamUserIDDTO;
 import org.example.azoi.model.Team;
 import org.example.azoi.model.TeamMember;
 import org.example.azoi.model.TeamMemberId;
+import org.example.azoi.model.User;
 import org.example.azoi.service.TeamMemberService;
 import org.example.azoi.utils.repository.TeamMemberRepository;
 import org.example.azoi.utils.repository.TeamRepository;
+import org.example.azoi.utils.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
 public class TeamMemberServiceImpl implements TeamMemberService {
 
+    private final UserRepository userRepository;
     private final TeamMemberRepository teamMemberRepository;
     private final TeamRepository teamRepository;
 
-    public TeamMemberServiceImpl(TeamMemberRepository teamMemberRepository, TeamRepository teamRepository) {
+    public TeamMemberServiceImpl(UserRepository userRepository, TeamMemberRepository teamMemberRepository, TeamRepository teamRepository) {
+        this.userRepository = userRepository;
         this.teamMemberRepository = teamMemberRepository;
         this.teamRepository = teamRepository;
     }
 
     @Override
     @Transactional
-    public Result<String> addTeamMember(Long teamId, Long userId) {
-        teamMemberRepository.save(new TeamMember(new TeamMemberId(teamId, userId)));
+    public Result<String> addTeamMember(TeamUserIDDTO teamUserIDDTO) {
+        //我们要判断这个user是否已经加入过团队了
+        if (getUserTeam(teamUserIDDTO.getUserId()).getCode() == Result.SUCCESS)
+            return new Result<>(null, Result.FAIL, "You are already join a team");
+
+        //fixme:判断用户id是否存在
+        Optional<User> u = userRepository.findById(teamUserIDDTO.getUserId());
+        if(u.isEmpty())
+            return new Result<>(null, Result.FAIL, "Can't find this user");
+
+        teamMemberRepository.save(new TeamMember(new TeamMemberId(teamUserIDDTO.getTeamId(), teamUserIDDTO.getUserId())));
         return new Result<>(null, Result.SUCCESS, "Member added successfully");
     }
 
     @Override
     @Transactional
     public Result<String> removeTeamMember(Long teamId, Long userId) {
-        //TODO: 增加校验模块
+        //我们要判断这个user是否在这个团队
+        Result<Team> team = getUserTeam(userId);
+        if (team.getCode() == Result.FAIL)
+            return new Result<>(null, Result.FAIL, "You are not join any team");
+
+        if(!Objects.equals(team.getObj().getId(), teamId))
+            return new Result<>(null, Result.FAIL, "You are not belong this team");
+
         teamMemberRepository.delete(new TeamMember(teamId, userId));
         return new Result<>(null, Result.SUCCESS, "Member removed successfully");
     }

@@ -5,6 +5,7 @@ import org.example.azoi.dto.teamtransmit.TeamDTO;
 import org.example.azoi.dto.teamtransmit.TeamUserIDDTO;
 import org.example.azoi.dto.teamtransmit.TeamVO;
 import org.example.azoi.model.Team;
+import org.example.azoi.service.TeamMemberService;
 import org.example.azoi.service.TeamService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +20,11 @@ import java.util.List;
 public class TeamController {
 
     private final TeamService teamService;
+    private final TeamMemberService teamMemberService;
 
-    public TeamController(TeamService teamService) {
+    public TeamController(TeamService teamService, TeamMemberService teamMemberService) {
         this.teamService = teamService;
+        this.teamMemberService = teamMemberService;
     }
 
     @GetMapping("/{teamId}")
@@ -41,10 +44,11 @@ public class TeamController {
     }
 
     @PostMapping("/joinTeam")
-    public ResponseEntity<String> joinTeam(@RequestBody TeamUserIDDTO teamUserIDDTO) {
-        //todo: 使用序列化而不是String
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body("join team: (not impl)" + teamUserIDDTO.getTeamId());
+    public ResponseEntity<Result<String>> joinTeam(@RequestBody TeamUserIDDTO teamUserIDDTO) {
+        Result<String> result = teamMemberService.addTeamMember(teamUserIDDTO);
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.status(HttpStatus.CREATED).body(result)
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
     @PostMapping("/create")

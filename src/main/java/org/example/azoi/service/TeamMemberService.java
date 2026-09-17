@@ -1,13 +1,14 @@
 package org.example.azoi.service;
 
 import org.example.azoi.dto.Result;
+import org.example.azoi.dto.teamtransmit.TeamUserIDDTO;
 import org.example.azoi.model.Team;
 import org.example.azoi.model.TeamMember;
 
 import java.util.List;
 
 public interface TeamMemberService {
-    Result<String> addTeamMember(Long teamId, Long userId);
+    Result<String> addTeamMember(TeamUserIDDTO teamUserIDDTO);
 
     Result<String> removeTeamMember(Long teamId, Long userId);
 

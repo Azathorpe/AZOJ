@@ -77,7 +77,7 @@ public class TeamServiceImpl implements TeamService {
         Team savedTeam = teamRepository.save(team);
 
         //将创建者添加为团队成员
-        teamMemberService.addTeamMember(savedTeam.getId(), savedTeam.getOwnerId());
+        teamMemberService.addTeamMember(new TeamUserIDDTO(savedTeam.getId(), savedTeam.getOwnerId()));
 
         return new Result<>(savedTeam, Result.SUCCESS, "Team created successfully");
     }
@@ -146,6 +146,8 @@ public class TeamServiceImpl implements TeamService {
 
         //删除团队
         teamRepository.delete(team);
+
+        teamMemberService.removeTeamMember(teamUserIDDTO.getTeamId(), teamUserIDDTO.getUserId());
         return new Result<>(null, Result.SUCCESS, "Team removed successfully");
     }
 
