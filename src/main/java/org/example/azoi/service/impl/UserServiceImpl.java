@@ -6,6 +6,8 @@ import org.example.azoi.dto.usertransmit.UserCurrentVO;
 import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.model.User;
+import org.example.azoi.service.RoleService;
+import org.example.azoi.service.UserRoleService;
 import org.example.azoi.service.UserService;
 import org.example.azoi.utils.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,12 +27,14 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final RoleServiceImpl roleService;
+    private final RoleService roleService;
+    private final UserRoleService userRoleService;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleServiceImpl roleService) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleServiceImpl roleService, UserRoleService userRoleService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleService = roleService;
+        this.userRoleService = userRoleService;
     }
 
     @Override
@@ -108,6 +112,10 @@ public class UserServiceImpl implements UserService {
             return new Result<>(null, Result.FAIL, res.getMsg());
 
         User save = userRepository.save(user);
+
+        //注册了User之后，也同样需要把Role注册一下，默认先注册成普通用户 也就是id为1的普通用户
+        userRoleService.addUserRole(user.getId(), 1L);
+
         return new Result<>(new UserInfoVO(save), Result.SUCCESS, "success");
     }
 

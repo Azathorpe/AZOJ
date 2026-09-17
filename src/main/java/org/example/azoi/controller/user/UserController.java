@@ -5,6 +5,7 @@ import org.example.azoi.dto.Result;
 import org.example.azoi.dto.usertransmit.UserCurrentVO;
 import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
+import org.example.azoi.model.Role;
 import org.example.azoi.model.UserRole;
 import org.example.azoi.service.UserRoleService;
 import org.example.azoi.service.UserService;
@@ -29,6 +30,7 @@ public class UserController {
         this.userRoleService = userRoleService;
     }
 
+    //FIXME: 要不要把这里改成userId
     @GetMapping("/getUser")
     public ResponseEntity<Result<UserCurrentVO>> getUser(@RequestParam Long id) {
         Result<UserCurrentVO> result = userService.getCurrentUser(id);
@@ -46,8 +48,8 @@ public class UserController {
     }
 
     @GetMapping("/getUserRole")
-    public ResponseEntity<Result<List<UserRole>>> getUserRole(@RequestParam Long userId) {
-        Result<List<UserRole>> result = userRoleService.getUserRoles(userId);
+    public ResponseEntity<Result<Role>> getUserRole(@RequestParam Long userId) {
+        Result<Role> result = userRoleService.getUserRoles(userId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.ok(result)
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
