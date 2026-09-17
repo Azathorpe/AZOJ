@@ -48,7 +48,8 @@ public class TeamMemberServiceImpl implements TeamMemberService {
 
     @Override
     @Transactional
-    public Result<String> removeTeamMember(Long teamId, Long userId) {
+    public Result<String> removeTeamMember(TeamUserIDDTO teamUserIDDTO) {
+        Long userId = teamUserIDDTO.getUserId(), teamId = teamUserIDDTO.getTeamId();
         //我们要判断这个user是否在这个团队
         Result<Team> team = getUserTeam(userId);
         if (team.getCode() == Result.FAIL)

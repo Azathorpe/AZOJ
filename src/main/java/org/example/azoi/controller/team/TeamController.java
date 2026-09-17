@@ -51,6 +51,14 @@ public class TeamController {
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
+    @PostMapping("/quit")
+    public ResponseEntity<Result<String>> quitTeam(@RequestBody TeamUserIDDTO teamUserIDDTO) {
+        Result<String> result = teamMemberService.removeTeamMember(teamUserIDDTO);
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.status(HttpStatus.CREATED).body(result)
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+    }
+
     @PostMapping("/create")
     public ResponseEntity<Result<Team>> createTeam(@RequestBody TeamDTO teamDTO) {
         Result<Team> result = teamService.createTeam(teamDTO);

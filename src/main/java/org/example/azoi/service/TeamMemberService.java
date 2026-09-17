@@ -10,7 +10,7 @@ import java.util.List;
 public interface TeamMemberService {
     Result<String> addTeamMember(TeamUserIDDTO teamUserIDDTO);
 
-    Result<String> removeTeamMember(Long teamId, Long userId);
+    Result<String> removeTeamMember(TeamUserIDDTO teamUserIDDTO);
 
     Result<String> removeAllTeamMember(Long teamId);
 
