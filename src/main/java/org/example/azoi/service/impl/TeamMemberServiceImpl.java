@@ -62,6 +62,12 @@ public class TeamMemberServiceImpl implements TeamMemberService {
     }
 
     @Override
+    public Result<String> removeAllTeamMember(Long teamId) {
+        teamMemberRepository.removeTeamMembersById_TeamId(teamId);
+        return new Result<>(null, Result.SUCCESS, "ok");
+    }
+
+    @Override
     public Result<List<TeamMember>> getTeamMembers(Long teamId) {
         List<TeamMember> res = teamMemberRepository.getAllById_TeamId(teamId);
         return new Result<>(res, Result.SUCCESS, "ok");

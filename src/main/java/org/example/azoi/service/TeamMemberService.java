@@ -12,6 +12,8 @@ public interface TeamMemberService {
 
     Result<String> removeTeamMember(Long teamId, Long userId);
 
+    Result<String> removeAllTeamMember(Long teamId);
+
     Result<List<TeamMember>> getTeamMembers(Long teamId);
 
     Result<Boolean> isTeamMember(Long userId, Long teamId);

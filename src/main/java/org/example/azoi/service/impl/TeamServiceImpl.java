@@ -147,7 +147,9 @@ public class TeamServiceImpl implements TeamService {
         //删除团队
         teamRepository.delete(team);
 
-        teamMemberService.removeTeamMember(teamUserIDDTO.getTeamId(), teamUserIDDTO.getUserId());
+        //删掉所有成员的数据
+        teamMemberService.removeAllTeamMember(teamUserIDDTO.getTeamId());
+
         return new Result<>(null, Result.SUCCESS, "Team removed successfully");
     }
 

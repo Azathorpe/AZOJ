@@ -12,4 +12,6 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, TeamMemb
     List<TeamMember> getAllById_TeamId(Long idTeamId);
 
     Optional<TeamMember> getTeamMemberById_UserId(Long idUserId);
+
+    void removeTeamMembersById_TeamId(Long idTeamId);
 }
