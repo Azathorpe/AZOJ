@@ -44,8 +44,8 @@ public class UserRoleServiceImpl implements UserRoleService {
 
     @Override
     @Transactional
-    public Result<Object> removeUserRole(Long userId, Long roleId) {
-        userRoleRepository.deleteById(new UserRoleId(userId, roleId));
+    public Result<Object> removeUserRole(Long userId) {
+        userRoleRepository.deleteById_UserId(userId);
         return new Result<>(null, Result.SUCCESS, "User role removed successfully");
     }
 

@@ -25,10 +25,9 @@ public interface UserRoleService {
      * 当用户注销的时候，需要删除用户的角色
      *
      * @param userId
-     * @param roleId
      * @return
      */
-    Result<Object> removeUserRole(Long userId, Long roleId);
+    Result<Object> removeUserRole(Long userId);
 
 
     /**

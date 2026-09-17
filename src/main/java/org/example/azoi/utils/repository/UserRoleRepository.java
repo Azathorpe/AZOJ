@@ -31,4 +31,6 @@ public interface UserRoleRepository extends JpaRepository<UserRole, UserRoleId> 
             WHERE ur.id.roleId = :roleId
             """)
     List<User> findUsersByRoleId(@Param("roleId") Long roleId);
+
+    void deleteById_UserId(Long idUserId);
 }
