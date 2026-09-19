@@ -50,8 +50,11 @@ public class ProblemController {
     }
 
     @PostMapping("/{problemId}/files")
-    public ResponseEntity<Result<ProblemFileVO>> createProblemFile(List<ProblemFileDTO> problemFileDTOS){
-        
+    public ResponseEntity<Result<List<ProblemFileVO>>> createProblemFile(@PathVariable Long problemId, List<ProblemFileDTO> problemFileDTOS){
+        Result<List<ProblemFileVO>> result = problemService.createProblemFile(problemId ,problemFileDTOS);
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.status(HttpStatus.OK).body(result)
+                : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
 
     @DeleteMapping("/soft/{problemId}")

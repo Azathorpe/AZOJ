@@ -176,9 +176,9 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     @Override
-    public Result<List<ProblemFileVO>> createProblemFile(List<ProblemFileDTO> problemFileDTOS) {
+    public Result<List<ProblemFileVO>> createProblemFile(Long problemId ,List<ProblemFileDTO> problemFileDTOS) {
         //检查问题文件是否存在
-        Optional<Problem> problem = problemRepository.findById(problemFileDTOS.get(0).getProblemId());
+        Optional<Problem> problem = problemRepository.findById(problemId);
         if(problem.isEmpty())
             return new Result<>(null, Result.FAIL, "can't find problem file");
 

@@ -17,7 +17,7 @@ public interface ProblemService {
 
     Result<ProblemInfoVO> createProblem(ProblemCreateDTO problemCreateDTO);
 
-    Result<List<ProblemFileVO>> createProblemFile(List<ProblemFileDTO> problemFileDTOS);
+    Result<List<ProblemFileVO>> createProblemFile(Long problemId ,List<ProblemFileDTO> problemFileDTOS);
 
     Result<Void> removeProblem(Long problemId);
 
