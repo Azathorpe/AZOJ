@@ -15,6 +15,14 @@ public class ProblemTagId implements Serializable {
     @Column(name = "tag_id", nullable = false)
     private Long tagId;
 
+    public ProblemTagId() {
+    }
+
+    public ProblemTagId(Long problemId, Long tagId) {
+        this.problemId = problemId;
+        this.tagId = tagId;
+    }
+
     public Long getProblemId() {
         return problemId;
     }

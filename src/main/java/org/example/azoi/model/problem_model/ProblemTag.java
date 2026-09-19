@@ -3,12 +3,24 @@ package org.example.azoi.model.problem_model;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import org.example.azoi.dto.problemtransmit.othertransmit.ProblemTagDTO;
 
 @Entity
 @Table(name = "problem_tags", schema = "azoi")
 public class ProblemTag {
     @EmbeddedId
     private ProblemTagId id;
+
+    public ProblemTag() {
+    }
+
+    public ProblemTag(ProblemTagDTO problemTagDTO){
+        this.id = new ProblemTagId(problemTagDTO.getProblemId(), problemTagDTO.getTagId());
+    }
+
+    public ProblemTag(ProblemTagId id) {
+        this.id = id;
+    }
 
     public ProblemTagId getId() {
         return id;

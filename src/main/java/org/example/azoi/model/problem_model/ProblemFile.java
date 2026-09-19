@@ -18,9 +18,17 @@ public class ProblemFile {
     @Column(name = "filename", nullable = false, length = 128)
     private String filename;
 
+    /**
+     * file类型(后面可扩展为交互题 普通题)
+     * 0: 测试点输入 后缀为.in
+     * 1: 测试点输出 后缀为.out
+     */
     @Column(name = "file_type", nullable = false)
     private Byte fileType;
 
+    /**
+     * 这个路径是我们自己选择的
+     */
     @Column(name = "storage_path", nullable = false, length = 512)
     private String storagePath;
 
@@ -32,6 +40,19 @@ public class ProblemFile {
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
+
+    @PrePersist
+    public void onCreated(){
+        this.createdAt = Instant.now();
+    }
+
+    public static String parseType(Byte fileType){
+        return switch (fileType) {
+            case 0 -> "in";
+            case 1 -> "out";
+            default -> "err";
+        };
+    }
 
     public Long getId() {
         return id;

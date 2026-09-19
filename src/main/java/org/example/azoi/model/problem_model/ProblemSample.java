@@ -1,6 +1,7 @@
 package org.example.azoi.model.problem_model;
 
 import jakarta.persistence.*;
+import org.example.azoi.dto.problemtransmit.othertransmit.ProblemSampleDTO;
 
 @Entity
 @Table(name = "problem_samples", schema = "azoi")
@@ -27,6 +28,25 @@ public class ProblemSample {
 
     @Column(name = "sort_order", nullable = false)
     private Integer sortOrder;
+
+    public ProblemSample() {
+    }
+
+    public ProblemSample(ProblemSampleDTO sample) {
+        this.input = sample.getInput();
+        this.output = sample.getOutput();
+        this.explanation = sample.getExplanation();
+        this.sortOrder = sample.getSortOrder();
+    }
+
+    public ProblemSample(Long id, Long problemId, String input, String output, String explanation, Integer sortOrder) {
+        this.id = id;
+        this.problemId = problemId;
+        this.input = input;
+        this.output = output;
+        this.explanation = explanation;
+        this.sortOrder = sortOrder;
+    }
 
     public Long getId() {
         return id;

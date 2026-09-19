@@ -1,104 +1,74 @@
-package org.example.azoi.model.problem_model;
+package org.example.azoi.dto.problemtransmit;
 
 import jakarta.persistence.*;
-import org.example.azoi.dto.problemtransmit.ProblemCreateDTO;
+import org.example.azoi.dto.usertransmit.UserInfoVO;
+import org.example.azoi.model.problem_model.Problem;
 
 import java.time.Instant;
 
-@Entity
-@Table(name = "problems", schema = "azoi")
-public class Problem {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Long id;
-
-    @Column(name = "title", nullable = false, length = 128)
+//题目信息+作者的VO
+public class ProblemInfoVO {
     private String title;
-
-    @Lob
-    @Column(name = "description", nullable = false)
     private String description;
-
-    @Lob
-    @Column(name = "input_format")
     private String inputFormat;
-
-    @Lob
-    @Column(name = "output_format")
     private String outputFormat;
-
-    @Lob
-    @Column(name = "hint")
     private String hint;
-
-    @Column(name = "difficulty", nullable = false)
     private Byte difficulty;
-
-    @Column(name = "time_limit", nullable = false)
     private Integer timeLimit;
-
-    @Column(name = "memory_limit", nullable = false)
     private Integer memoryLimit;
-
-    @Column(name = "output_limit", nullable = false)
     private Integer outputLimit;
-
-    @Column(name = "judge_type", nullable = false)
     private Byte judgeType;
-
-    @Column(name = "is_visible", nullable = false)
     private Boolean isVisible;
-
-    @Column(name = "submit_count", nullable = false)
-    private Integer submitCount = 0;
-
-    @Column(name = "accepted_count", nullable = false)
-    private Integer acceptedCount = 0;
-
-    @Column(name = "created_by", nullable = false)
-    private Long createdBy;
-
-    @Column(name = "created_at", nullable = false)
+    private Integer submitCount;
+    private Integer acceptedCount;
     private Instant createdAt;
-
-    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    @Column(name = "deleted_at")
-    private Instant deletedAt;
+    private UserInfoVO createdBy;
 
-    public Problem() {
-
+    public ProblemInfoVO() {
     }
 
-    @PrePersist
-    public void onCreated(){
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
+    public ProblemInfoVO(Problem problem) {
+        this.title = problem.getTitle();
+        this.description = problem.getDescription();
+        this.inputFormat = problem.getInputFormat();
+        this.outputFormat = problem.getOutputFormat();
+        this.hint = problem.getHint();
+        this.difficulty = problem.getDifficulty();
+        this.timeLimit = problem.getTimeLimit();
+        this.memoryLimit = problem.getMemoryLimit();
+        this.outputLimit = problem.getOutputLimit();
+        this.judgeType = problem.getJudgeType();
+        this.isVisible = problem.getIsVisible();
+        this.submitCount = problem.getSubmitCount();
+        this.acceptedCount = problem.getAcceptedCount();
+        this.createdAt = problem.getCreatedAt();
+        this.updatedAt = problem.getUpdatedAt();
     }
 
-    public Problem(ProblemCreateDTO problemCreateDTO) {
-        this.title = problemCreateDTO.getTitle();
-        this.description = problemCreateDTO.getDescription();
-        this.inputFormat = problemCreateDTO.getInputFormat();
-        this.outputFormat = problemCreateDTO.getOutputFormat();
-        this.hint = problemCreateDTO.getHint();
-        this.difficulty = problemCreateDTO.getDifficulty();
-        this.timeLimit = problemCreateDTO.getTimeLimit();
-        this.memoryLimit = problemCreateDTO.getMemoryLimit();
-        this.outputLimit = problemCreateDTO.getOutputLimit();
-        this.judgeType = problemCreateDTO.getJudgeType();
-        this.isVisible = problemCreateDTO.getVisible();
-        this.createdBy = problemCreateDTO.getCreatedBy();
+    public ProblemInfoVO(Problem problem, UserInfoVO createdBy) {
+        this(problem);
+        this.createdBy = createdBy;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
+    public ProblemInfoVO(String title, String description, String inputFormat, String outputFormat, String hint, Byte difficulty, Integer timeLimit, Integer memoryLimit, Integer outputLimit, Byte judgeType, Boolean isVisible, Integer submitCount, Integer acceptedCount, Instant createdAt, Instant updatedAt, UserInfoVO createdBy) {
+        this.title = title;
+        this.description = description;
+        this.inputFormat = inputFormat;
+        this.outputFormat = outputFormat;
+        this.hint = hint;
+        this.difficulty = difficulty;
+        this.timeLimit = timeLimit;
+        this.memoryLimit = memoryLimit;
+        this.outputLimit = outputLimit;
+        this.judgeType = judgeType;
+        this.isVisible = isVisible;
+        this.submitCount = submitCount;
+        this.acceptedCount = acceptedCount;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.createdBy = createdBy;
     }
 
     public String getTitle() {
@@ -181,12 +151,12 @@ public class Problem {
         this.judgeType = judgeType;
     }
 
-    public Boolean getIsVisible() {
+    public Boolean getVisible() {
         return isVisible;
     }
 
-    public void setIsVisible(Boolean isVisible) {
-        this.isVisible = isVisible;
+    public void setVisible(Boolean visible) {
+        isVisible = visible;
     }
 
     public Integer getSubmitCount() {
@@ -205,14 +175,6 @@ public class Problem {
         this.acceptedCount = acceptedCount;
     }
 
-    public Long getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(Long createdBy) {
-        this.createdBy = createdBy;
-    }
-
     public Instant getCreatedAt() {
         return createdAt;
     }
@@ -229,12 +191,11 @@ public class Problem {
         this.updatedAt = updatedAt;
     }
 
-    public Instant getDeletedAt() {
-        return deletedAt;
+    public UserInfoVO getCreatedBy() {
+        return createdBy;
     }
 
-    public void setDeletedAt(Instant deletedAt) {
-        this.deletedAt = deletedAt;
+    public void setCreatedBy(UserInfoVO createdBy) {
+        this.createdBy = createdBy;
     }
-
 }
