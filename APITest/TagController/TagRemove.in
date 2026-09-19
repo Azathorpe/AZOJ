@@ -1,0 +1,11 @@
+[Host]
+http://localhost:8080/tag/delete/10
+
+[Method]
+DELETE
+
+[Backend]
+curl
+
+[BackendOptions]
+-H "Content-Type: application/json"

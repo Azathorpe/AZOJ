@@ -1,0 +1,48 @@
+[Host]
+http://localhost:8080/problem/create
+
+[Method]
+POST
+
+[Headers]
+Content-Type: application/json
+
+[Body]
+{
+    "title": "A+B Problem",
+    "description": "输入两个整数 a 和 b，输出它们的和。",
+    "inputFormat": "一行两个整数 a 和 b，用空格分隔。",
+    "outputFormat": "一个整数，表示 a + b 的值。",
+    "hint": "注意数据范围，a 和 b 可能为负数。",
+    "difficulty": 0,
+    "timeLimit": 1000,
+    "memoryLimit": 256,
+    "outputLimit": 64,
+    "judgeType": 0,
+    "isVisible": true,
+    "createdBy": 1,
+    "samples": [
+        {
+            "input": "1 2",
+            "output": "3",
+            "explanation": "1 + 2 = 3",
+            "sortOrder": 0
+        },
+        {
+            "input": "-1 5",
+            "output": "4",
+            "explanation": "-1 + 5 = 4",
+            "sortOrder": 1
+        }
+    ],
+    "problemTags": [
+        { "tagId": 1 },
+        { "tagId": 2 }
+    ]
+}
+
+[Backend]
+curl
+
+[BackendOptions]
+-H "Content-Type: application/json"

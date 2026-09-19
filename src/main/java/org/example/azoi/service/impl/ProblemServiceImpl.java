@@ -37,6 +37,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -185,8 +186,13 @@ public class ProblemServiceImpl implements ProblemService {
 
         List<ProblemFileVO> pfs = new ArrayList<>();
 
-        for (int testPoint = 0; testPoint < files.length; testPoint++) {
-            Result<ProblemFile> result = uploadFile(fileTypes[testPoint], files[testPoint], problem.get(), testPoint);
+        int[] index = new int[ProblemFile.getTypeCount()];
+        //获取已经上传的所有测试文件，/2得到新的索引
+        int len = problemFileRepository.findAllByProblemId(problemId).size() >> 1;
+        Arrays.fill(index, len + 1);
+
+        for (int i = 0; i < files.length; i++) {
+            Result<ProblemFile> result = uploadFile(fileTypes[i], files[i], problem.get(), index[fileTypes[i]]++);
             pfs.add(new ProblemFileVO(result.getObj().getFilename(), result.getObj().getFileType(),result.getCode(), result.getMsg()));
         }
 

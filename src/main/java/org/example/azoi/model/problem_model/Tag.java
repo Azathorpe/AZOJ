@@ -21,6 +21,21 @@ public class Tag {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    @PrePersist
+    public void onCreated() {
+        createdAt = Instant.now();
+    }
+
+    public Tag() {
+    }
+
+    public Tag(Long id, String name, String color, Instant createdAt) {
+        this.id = id;
+        this.name = name;
+        this.color = color;
+        this.createdAt = createdAt;
+    }
+
     public Long getId() {
         return id;
     }

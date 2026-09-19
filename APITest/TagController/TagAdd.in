@@ -1,0 +1,17 @@
+[Host]
+http://localhost:8080/tag/add
+
+[Method]
+POST
+
+[Body]
+{
+    "name" : "Del me",
+    "color" : "bfbfbf"
+}
+
+[Backend]
+curl
+
+[BackendOptions]
+-H "Content-Type: application/json"
