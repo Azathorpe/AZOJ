@@ -18,6 +18,10 @@ public class ProblemTag {
         this.id = new ProblemTagId(problemTagDTO.getProblemId(), problemTagDTO.getTagId());
     }
 
+    public ProblemTag(Long problemId, Long tagId){
+        this.id = new ProblemTagId(problemId, tagId);
+    }
+
     public ProblemTag(ProblemTagId id) {
         this.id = id;
     }

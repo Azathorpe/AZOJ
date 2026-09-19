@@ -40,24 +40,24 @@ public class ProblemController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Result<ProblemInfoVO>> createProblem(@RequestBody ProblemCreateDTO problemCreateDTO){
+    public ResponseEntity<Result<ProblemInfoVO>> createProblem(ProblemCreateDTO problemCreateDTO){
         Result<ProblemInfoVO> result = problemService.createProblem(problemCreateDTO);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.OK).body(result)
                 : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
 
-    @DeleteMapping("/softRemove")
+    @DeleteMapping("/soft/{problemId}")
     //软删除题目
-    public ResponseEntity<Result<Void>> removeProblem(@RequestBody Long problemId){
+    public ResponseEntity<Result<Void>> removeProblem(@PathVariable Long problemId){
         Result<Void> result = problemService.removeProblem(problemId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.OK).body(result)
                 : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
 
-    @DeleteMapping("/delete")
-    public ResponseEntity<Result<Void>> deleteProblem(@RequestBody Long problemId){
+    @DeleteMapping("/delete/{problemId}")
+    public ResponseEntity<Result<Void>> deleteProblem(@PathVariable Long problemId){
         Result<Void> result = problemService.deleteProblem(problemId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.OK).body(result)

@@ -1,8 +1,6 @@
 package org.example.azoi.service.impl;
 
 import jakarta.persistence.criteria.Predicate;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.example.azoi.dto.Result;
 import org.example.azoi.dto.problemtransmit.ProblemCreateDTO;
 import org.example.azoi.dto.problemtransmit.ProblemInfoVO;
@@ -15,7 +13,10 @@ import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.model.problem_model.*;
 import org.example.azoi.model.user_model.User;
 import org.example.azoi.service.ProblemService;
+import org.example.azoi.utils.exception.BusinessException;
 import org.example.azoi.utils.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -39,7 +40,7 @@ import java.util.Optional;
 
 @Service
 public class ProblemServiceImpl implements ProblemService {
-    private static final Logger log = LogManager.getLogger(ProblemServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ProblemServiceImpl.class);
     @Value("${azoi.storage.root}")
     private String storageRoot;
     @Value("${azoi.storage.problem-dir}")
@@ -107,6 +108,8 @@ public class ProblemServiceImpl implements ProblemService {
 
         if (result.isPresent()) {
             Problem problem = result.get();
+            if (problem.getDeletedAt() != null)
+                return new Result<>(null, Result.FAIL, "problem has been deleted");
 
             //除了获取题目 还需要手动获取创建者信息 如果没有 那就已注销
             Optional<User> creator = userRepository.findById(problem.getCreatedBy());
@@ -124,6 +127,9 @@ public class ProblemServiceImpl implements ProblemService {
     @Transactional
     public Result<ProblemInfoVO> createProblem(ProblemCreateDTO problemCreateDTO) {
         Problem problem = problemRepository.save(new Problem(problemCreateDTO));
+        if(problem.getId() == null)
+            throw new BusinessException("Problem has not been created...");
+
         StringBuilder sb = new StringBuilder();
 
         //获取题目的id
@@ -131,7 +137,7 @@ public class ProblemServiceImpl implements ProblemService {
         //通过Id注册samples,file和tags
         //samples
         List<ProblemSampleDTO> samples = problemCreateDTO.getSamples();
-        int index = 0;
+            int index = 0;
         for (ProblemSampleDTO sample : samples) {
             ProblemSample problemSample = new ProblemSample(sample);
             problemSample.setProblemId(problemId);
@@ -145,21 +151,25 @@ public class ProblemServiceImpl implements ProblemService {
         List<ProblemFileDTO> problemFiles = problemCreateDTO.getProblemFiles();
         index = 0;
         for (ProblemFileDTO problemFileDTO : problemFiles) {
-            Result<Void> fileResult = uploadFile(problemFileDTO, problem, index++);
+            index++;
+            Result<Void> fileResult = uploadFile(problemFileDTO, problem, index);
 
             if (fileResult.getCode() == Result.FAIL) {
                 sb.append("TestPoint ").append(index).append("FAILED, Reason: ").append(fileResult.getMsg()).append("\n");
-                continue;
-            }
-            sb.append("TestPoint ").append(index).append("SUCCESS\n");
+                throw new BusinessException("文件上传失败: " + sb);
+            }else
+                sb.append("TestPoint ").append(index).append("SUCCESS\n");
         }
 
-        //TAGS
+        //TAGS FIXME:这里估计会有bug 记得修复一下
         List<ProblemTagDTO> tags = problemCreateDTO.getProblemTags();
-        for (ProblemTagDTO tag : tags)
-            problemTagRepository.save(new ProblemTag(tag));
+        for (ProblemTagDTO tag : tags) {
+            ProblemTag pt = new ProblemTag();
+            pt.setId(new ProblemTagId(problemId, tag.getTagId()));
+            problemTagRepository.save(pt);
+        }
 
-        return new Result<>(new ProblemInfoVO(),
+        return new Result<>(new ProblemInfoVO(problem),
                 Result.SUCCESS,
                 sb.toString());
     }
@@ -172,24 +182,28 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     @Override
+    @Transactional
     public Result<Void> deleteProblem(Long problemId) {
-        problemRepository.deleteById(problemId);
+        Problem problem = problemRepository.findById(problemId)
+                .orElseThrow(() -> new RuntimeException("题目不存在"));
+
         StringBuilder msg = new StringBuilder();
 
         //删除problem的同时 也要删除problemFile samples problemTags
         //problemFile
         List<ProblemFile> allProblemFiles = problemFileRepository.findAllByProblemId(problemId);
-        for (ProblemFile problemFile : allProblemFiles) {
+        for (ProblemFile problemFile : allProblemFiles)
             if (deleteFile(problemFile).getCode() == Result.FAIL)
                 msg.append("Delete FAIL: ").append(problemFile.getProblemId()).append("\n");
-            problemFileRepository.delete(problemFile);
-        }
 
         //samples
-        problemFileRepository.deleteAllByProblemId(problemId);
+        problemSampleRepository.deleteAllByProblemId(problemId);
 
         //problemTags
         problemTagRepository.deleteAllById_ProblemId(problemId);
+
+        //problem
+        problemRepository.deleteById(problemId);
 
         return new Result<>(null, Result.SUCCESS, msg.toString());
     }
@@ -197,15 +211,16 @@ public class ProblemServiceImpl implements ProblemService {
 
     private Result<Void> uploadFile(ProblemFileDTO problemFileDTO, Problem problem, int testPoint) {
         //我们将problem的名字+测试点 后缀通过fileType拼接
-        String fileName = problem.getTitle() + testPoint + "." + ProblemFile.parseType(problemFileDTO.getFileType());
+        String fileName = testPoint + "." + ProblemFile.parseType(problemFileDTO.getFileType());
         if (fileName.contains("/") || fileName.contains(".."))
             return new Result<>(null, Result.FAIL, "非法的文件名");
+        //相对路径
+        String relativePath = problem.getId() + "/" + fileName;
 
-        Path dir = Paths.get(storageRoot + problemPath + "/" + fileName);
-        Path target = dir.resolve(fileName);
+        Path target = Paths.get(storageRoot, problemPath).resolve(relativePath);
 
         try {
-            Files.createDirectories(dir);
+            Files.createDirectories(target.getParent());
 
             //Write
             try (InputStream is = problemFileDTO.getFile().getInputStream()) {
@@ -221,7 +236,7 @@ public class ProblemServiceImpl implements ProblemService {
             pf.setFileType(problemFileDTO.getFileType());
             pf.setFileSize(problemFileDTO.getFile().getSize());
             pf.setFilename(fileName);
-            pf.setStoragePath(target.toString());
+            pf.setStoragePath(String.valueOf(relativePath));
             pf.setMd5(md5);
             problemFileRepository.save(pf);
         } catch (IOException e) {
@@ -232,12 +247,12 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     private Result<Void> deleteFile(ProblemFile problemFile) {
-        Path target = Paths.get(storageRoot + problemPath + "/" + problemFile.getFilename());
-        try{
-            Files.delete(target);
-        }catch (IOException e) {
-            log.info("File delete failed");
-            return new Result<>(null, Result.FAIL, "File delete failed");
+        Path target = Paths.get(storageRoot, problemPath).resolve(problemFile.getStoragePath());
+        try {
+            Files.deleteIfExists(target);
+        } catch (IOException e) {
+            log.info("物理文件删除失败: {}", target, e);
+//            return new Result<>(null, Result.FAIL, "File delete failed");
         }
         problemFileRepository.delete(problemFile);
         return new Result<>(null, Result.SUCCESS, "ok");

@@ -63,17 +63,17 @@ public class ProblemCreateDTO {
     /**
      * 样例
      */
-    private List<ProblemSampleDTO> samples;
+    private List<ProblemSampleDTO> samples = new ArrayList<>();
 
     /**
      * 测试
      */
-    private List<ProblemFileDTO> problemFiles;
+    private List<ProblemFileDTO> problemFiles = new  ArrayList<>();
 
     /**
      * 题目标签
      */
-    private List<ProblemTagDTO> problemTags;
+    private List<ProblemTagDTO> problemTags = new ArrayList<>();
 
     public ProblemCreateDTO() {
     }
@@ -92,7 +92,7 @@ public class ProblemCreateDTO {
         this.isVisible = isVisible;
         this.createdBy = createdBy;
         this.samples = samples;
-        this.problemFiles= problemFiles;
+        this.problemFiles = problemFiles;
         this.problemTags = problemTags;
     }
 

@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface ProblemSampleRepository extends JpaRepository<ProblemSample, Long> {
     List<ProblemSample> findAllByProblemId(Long problemId);
+
+    void deleteAllByProblemId(Long problemId);
 }

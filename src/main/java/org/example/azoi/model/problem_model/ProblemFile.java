@@ -50,7 +50,7 @@ public class ProblemFile {
         return switch (fileType) {
             case 0 -> "in";
             case 1 -> "out";
-            default -> "err";
+            default -> throw new IllegalArgumentException("非法 fileType: " + fileType);
         };
     }
 
