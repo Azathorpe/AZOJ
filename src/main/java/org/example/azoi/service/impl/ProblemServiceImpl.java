@@ -1,6 +1,8 @@
 package org.example.azoi.service.impl;
 
 import jakarta.persistence.criteria.Predicate;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.example.azoi.dto.Result;
 import org.example.azoi.dto.problemtransmit.ProblemCreateDTO;
 import org.example.azoi.dto.problemtransmit.ProblemInfoVO;
@@ -20,24 +22,24 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class ProblemServiceImpl implements ProblemService {
+    private static final Logger log = LogManager.getLogger(ProblemServiceImpl.class);
     @Value("${azoi.storage.root}")
     private String storageRoot;
     @Value("${azoi.storage.problem-dir}")
@@ -119,6 +121,7 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     @Override
+    @Transactional
     public Result<ProblemInfoVO> createProblem(ProblemCreateDTO problemCreateDTO) {
         Problem problem = problemRepository.save(new Problem(problemCreateDTO));
         StringBuilder sb = new StringBuilder();
@@ -153,12 +156,42 @@ public class ProblemServiceImpl implements ProblemService {
 
         //TAGS
         List<ProblemTagDTO> tags = problemCreateDTO.getProblemTags();
-        for(ProblemTagDTO tag : tags)
+        for (ProblemTagDTO tag : tags)
             problemTagRepository.save(new ProblemTag(tag));
 
         return new Result<>(new ProblemInfoVO(),
                 Result.SUCCESS,
                 sb.toString());
+    }
+
+    @Override
+    @Transactional
+    public Result<Void> removeProblem(Long problemId) {
+        problemRepository.findById(problemId).ifPresent(problem -> problem.setDeletedAt(Instant.now()));
+        return new Result<>(null, Result.SUCCESS, "ok");
+    }
+
+    @Override
+    public Result<Void> deleteProblem(Long problemId) {
+        problemRepository.deleteById(problemId);
+        StringBuilder msg = new StringBuilder();
+
+        //删除problem的同时 也要删除problemFile samples problemTags
+        //problemFile
+        List<ProblemFile> allProblemFiles = problemFileRepository.findAllByProblemId(problemId);
+        for (ProblemFile problemFile : allProblemFiles) {
+            if (deleteFile(problemFile).getCode() == Result.FAIL)
+                msg.append("Delete FAIL: ").append(problemFile.getProblemId()).append("\n");
+            problemFileRepository.delete(problemFile);
+        }
+
+        //samples
+        problemFileRepository.deleteAllByProblemId(problemId);
+
+        //problemTags
+        problemTagRepository.deleteAllById_ProblemId(problemId);
+
+        return new Result<>(null, Result.SUCCESS, msg.toString());
     }
 
 
@@ -168,14 +201,14 @@ public class ProblemServiceImpl implements ProblemService {
         if (fileName.contains("/") || fileName.contains(".."))
             return new Result<>(null, Result.FAIL, "非法的文件名");
 
-        Path dir = Paths.get(storageRoot + "/" + fileName);
+        Path dir = Paths.get(storageRoot + problemPath + "/" + fileName);
         Path target = dir.resolve(fileName);
 
-        try{
+        try {
             Files.createDirectories(dir);
 
             //Write
-            try(InputStream is = problemFileDTO.getFile().getInputStream()){
+            try (InputStream is = problemFileDTO.getFile().getInputStream()) {
                 Files.copy(is, target, StandardCopyOption.REPLACE_EXISTING);
             }
 
@@ -183,7 +216,7 @@ public class ProblemServiceImpl implements ProblemService {
             String md5 = DigestUtils.md5DigestAsHex(Files.newInputStream(target));
 
             //Write In mysql
-            ProblemFile pf = new  ProblemFile();
+            ProblemFile pf = new ProblemFile();
             pf.setProblemId(problem.getId());
             pf.setFileType(problemFileDTO.getFileType());
             pf.setFileSize(problemFileDTO.getFile().getSize());
@@ -195,6 +228,18 @@ public class ProblemServiceImpl implements ProblemService {
             return new Result<>(null, Result.FAIL, "文件保存失败 Exception:" + e.getMessage());
         }
 
+        return new Result<>(null, Result.SUCCESS, "ok");
+    }
+
+    private Result<Void> deleteFile(ProblemFile problemFile) {
+        Path target = Paths.get(storageRoot + problemPath + "/" + problemFile.getFilename());
+        try{
+            Files.delete(target);
+        }catch (IOException e) {
+            log.info("File delete failed");
+            return new Result<>(null, Result.FAIL, "File delete failed");
+        }
+        problemFileRepository.delete(problemFile);
         return new Result<>(null, Result.SUCCESS, "ok");
     }
 }

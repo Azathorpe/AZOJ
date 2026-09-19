@@ -46,4 +46,21 @@ public class ProblemController {
                 ? ResponseEntity.status(HttpStatus.OK).body(result)
                 : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
     }
+
+    @DeleteMapping("/softRemove")
+    //软删除题目
+    public ResponseEntity<Result<Void>> removeProblem(@RequestBody Long problemId){
+        Result<Void> result = problemService.removeProblem(problemId);
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.status(HttpStatus.OK).body(result)
+                : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<Result<Void>> deleteProblem(@RequestBody Long problemId){
+        Result<Void> result = problemService.deleteProblem(problemId);
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.status(HttpStatus.OK).body(result)
+                : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
 }

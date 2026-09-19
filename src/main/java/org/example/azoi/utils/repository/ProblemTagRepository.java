@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface ProblemTagRepository extends JpaRepository<ProblemTag, Long> {
     List<ProblemTag> findById_TagId(Long idTagId);
+
+    void deleteAllById_ProblemId(Long idProblemId);
 }

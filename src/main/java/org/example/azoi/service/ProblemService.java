@@ -14,4 +14,7 @@ public interface ProblemService {
     Result<ProblemInfoVO> getProblem(Long problemId);
 
     Result<ProblemInfoVO> createProblem(ProblemCreateDTO problemCreateDTO);
+
+    Result<Void> removeProblem(Long problemId);
+    Result<Void> deleteProblem(Long problemId);
 }
