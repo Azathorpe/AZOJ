@@ -66,11 +66,6 @@ public class ProblemCreateDTO {
     private List<ProblemSampleDTO> samples = new ArrayList<>();
 
     /**
-     * 测试
-     */
-    private List<ProblemFileDTO> problemFiles = new  ArrayList<>();
-
-    /**
      * 题目标签
      */
     private List<ProblemTagDTO> problemTags = new ArrayList<>();
@@ -78,7 +73,7 @@ public class ProblemCreateDTO {
     public ProblemCreateDTO() {
     }
 
-    public ProblemCreateDTO(String title, String description, String inputFormat, String outputFormat, String hint, Byte difficulty, Integer timeLimit, Integer memoryLimit, Integer outputLimit, Byte judgeType, Boolean isVisible, Long createdBy, List<ProblemSampleDTO> samples, List<ProblemFileDTO> problemFiles, List<ProblemTagDTO> problemTags) {
+    public ProblemCreateDTO(String title, String description, String inputFormat, String outputFormat, String hint, Byte difficulty, Integer timeLimit, Integer memoryLimit, Integer outputLimit, Byte judgeType, Boolean isVisible, Long createdBy, List<ProblemSampleDTO> samples, List<ProblemTagDTO> problemTags) {
         this.title = title;
         this.description = description;
         this.inputFormat = inputFormat;
@@ -92,16 +87,7 @@ public class ProblemCreateDTO {
         this.isVisible = isVisible;
         this.createdBy = createdBy;
         this.samples = samples;
-        this.problemFiles = problemFiles;
         this.problemTags = problemTags;
-    }
-
-    public List<ProblemFileDTO> getProblemFiles() {
-        return problemFiles;
-    }
-
-    public void setProblemFiles(List<ProblemFileDTO> problemFiles) {
-        this.problemFiles = problemFiles;
     }
 
     public List<ProblemTagDTO> getProblemTags() {

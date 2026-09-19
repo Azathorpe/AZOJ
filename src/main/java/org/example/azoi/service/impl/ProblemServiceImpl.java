@@ -7,6 +7,7 @@ import org.example.azoi.dto.problemtransmit.ProblemInfoVO;
 import org.example.azoi.dto.problemtransmit.ProblemQueryDTO;
 import org.example.azoi.dto.problemtransmit.ProblemSimpleInfoVO;
 import org.example.azoi.dto.problemtransmit.othertransmit.ProblemFileDTO;
+import org.example.azoi.dto.problemtransmit.othertransmit.ProblemFileVO;
 import org.example.azoi.dto.problemtransmit.othertransmit.ProblemSampleDTO;
 import org.example.azoi.dto.problemtransmit.othertransmit.ProblemTagDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -127,17 +129,16 @@ public class ProblemServiceImpl implements ProblemService {
     @Transactional
     public Result<ProblemInfoVO> createProblem(ProblemCreateDTO problemCreateDTO) {
         Problem problem = problemRepository.save(new Problem(problemCreateDTO));
-        if(problem.getId() == null)
+        if (problem.getId() == null)
             throw new BusinessException("Problem has not been created...");
 
-        StringBuilder sb = new StringBuilder();
 
         //获取题目的id
         Long problemId = problem.getId();
         //通过Id注册samples,file和tags
         //samples
         List<ProblemSampleDTO> samples = problemCreateDTO.getSamples();
-            int index = 0;
+        int index = 0;
         for (ProblemSampleDTO sample : samples) {
             ProblemSample problemSample = new ProblemSample(sample);
             problemSample.setProblemId(problemId);
@@ -146,20 +147,20 @@ public class ProblemServiceImpl implements ProblemService {
             problemSampleRepository.save(problemSample);
         }
 
-        //file
+        //file (git 分支 separation 分离这个方法为创建题目 + 单独上传测试文件)
         //文件名以题目名字+测试点名字.in拼接而成
-        List<ProblemFileDTO> problemFiles = problemCreateDTO.getProblemFiles();
-        index = 0;
-        for (ProblemFileDTO problemFileDTO : problemFiles) {
-            index++;
-            Result<Void> fileResult = uploadFile(problemFileDTO, problem, index);
-
-            if (fileResult.getCode() == Result.FAIL) {
-                sb.append("TestPoint ").append(index).append("FAILED, Reason: ").append(fileResult.getMsg()).append("\n");
-                throw new BusinessException("文件上传失败: " + sb);
-            }else
-                sb.append("TestPoint ").append(index).append("SUCCESS\n");
-        }
+//        List<ProblemFileDTO> problemFiles = problemCreateDTO.getProblemFiles();
+//        index = 0;
+//        for (ProblemFileDTO problemFileDTO : problemFiles) {
+//            index++;
+//            Result<Void> fileResult = uploadFile(problemFileDTO, problem, index);
+//
+//            if (fileResult.getCode() == Result.FAIL) {
+//                sb.append("TestPoint ").append(index).append("FAILED, Reason: ").append(fileResult.getMsg()).append("\n");
+//                throw new BusinessException("文件上传失败: " + sb);
+//            }else
+//                sb.append("TestPoint ").append(index).append("SUCCESS\n");
+//        }
 
         //TAGS FIXME:这里估计会有bug 记得修复一下
         List<ProblemTagDTO> tags = problemCreateDTO.getProblemTags();
@@ -171,7 +172,25 @@ public class ProblemServiceImpl implements ProblemService {
 
         return new Result<>(new ProblemInfoVO(problem),
                 Result.SUCCESS,
-                sb.toString());
+                "ok");
+    }
+
+    @Override
+    @Transactional
+    public Result<List<ProblemFileVO>> createProblemFile(Long problemId, MultipartFile[] files, Byte[] fileTypes) {
+        //检查问题文件是否存在
+        Optional<Problem> problem = problemRepository.findById(problemId);
+        if (problem.isEmpty() || problem.get().getDeletedAt() != null)
+            return new Result<>(null, Result.FAIL, "can't find problem file");
+
+        List<ProblemFileVO> pfs = new ArrayList<>();
+
+        for (int testPoint = 0; testPoint < files.length; testPoint++) {
+            Result<ProblemFile> result = uploadFile(fileTypes[testPoint], files[testPoint], problem.get(), testPoint);
+            pfs.add(new ProblemFileVO(result.getObj().getFilename(), result.getObj().getFileType(),result.getCode(), result.getMsg()));
+        }
+
+        return new Result<>(pfs, Result.SUCCESS, "please check pfs details");
     }
 
     @Override
@@ -185,7 +204,7 @@ public class ProblemServiceImpl implements ProblemService {
     @Transactional
     public Result<Void> deleteProblem(Long problemId) {
         Problem problem = problemRepository.findById(problemId)
-                .orElseThrow(() -> new RuntimeException("题目不存在"));
+                .orElseThrow(() -> new BusinessException("题目不存在"));
 
         StringBuilder msg = new StringBuilder();
 
@@ -209,11 +228,24 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
 
-    private Result<Void> uploadFile(ProblemFileDTO problemFileDTO, Problem problem, int testPoint) {
+    private Result<ProblemFile> uploadFile(ProblemFileDTO problemFileDTO, Problem problem, int testPoint) {
+        return uploadFile(problemFileDTO.getFileType(), problemFileDTO.getFile(), problem, testPoint);
+    }
+
+    private Result<ProblemFile> uploadFile(Byte fileType, MultipartFile file, Problem problem, int testPoint) {
         //我们将problem的名字+测试点 后缀通过fileType拼接
-        String fileName = testPoint + "." + ProblemFile.parseType(problemFileDTO.getFileType());
+        String fileName = "";
+        try {
+            fileName = testPoint + "." + ProblemFile.parseType(fileType);
+        }catch (IllegalArgumentException e) {
+            return new Result<>(null, Result.FAIL, "非法 fileType: " + fileType);
+        }
         if (fileName.contains("/") || fileName.contains(".."))
             return new Result<>(null, Result.FAIL, "非法的文件名");
+
+        if(file == null || file.isEmpty())
+            return new Result<>(null, Result.FAIL, "文件为空");
+
         //相对路径
         String relativePath = problem.getId() + "/" + fileName;
 
@@ -223,7 +255,7 @@ public class ProblemServiceImpl implements ProblemService {
             Files.createDirectories(target.getParent());
 
             //Write
-            try (InputStream is = problemFileDTO.getFile().getInputStream()) {
+            try (InputStream is = file.getInputStream()) {
                 Files.copy(is, target, StandardCopyOption.REPLACE_EXISTING);
             }
 
@@ -233,17 +265,16 @@ public class ProblemServiceImpl implements ProblemService {
             //Write In mysql
             ProblemFile pf = new ProblemFile();
             pf.setProblemId(problem.getId());
-            pf.setFileType(problemFileDTO.getFileType());
-            pf.setFileSize(problemFileDTO.getFile().getSize());
+            pf.setFileType(fileType);
+            pf.setFileSize(file.getSize());
             pf.setFilename(fileName);
-            pf.setStoragePath(String.valueOf(relativePath));
+            pf.setStoragePath(relativePath);
             pf.setMd5(md5);
-            problemFileRepository.save(pf);
+            ProblemFile save = problemFileRepository.save(pf);
+            return new Result<>(save, Result.SUCCESS, "ok");
         } catch (IOException e) {
             return new Result<>(null, Result.FAIL, "文件保存失败 Exception:" + e.getMessage());
         }
-
-        return new Result<>(null, Result.SUCCESS, "ok");
     }
 
     private Result<Void> deleteFile(ProblemFile problemFile) {
