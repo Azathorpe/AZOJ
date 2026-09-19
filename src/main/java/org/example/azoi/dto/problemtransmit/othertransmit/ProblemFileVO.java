@@ -7,15 +7,27 @@ public class ProblemFileVO {
     public static final int SUCCESS = 1;
     public static final int FAIL = -1;
 
+    private String filename;
+    private Byte fileType;
     private int code;
     private String msg;
 
     public ProblemFileVO() {
     }
 
-    public ProblemFileVO(int code, String msg) {
+    public ProblemFileVO(String filename, Byte fileType, int code, String msg) {
+        this.filename = filename;
+        this.fileType = fileType;
         this.code = code;
         this.msg = msg;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public Byte getFileType() {
+        return fileType;
     }
 
     public int getCode() {

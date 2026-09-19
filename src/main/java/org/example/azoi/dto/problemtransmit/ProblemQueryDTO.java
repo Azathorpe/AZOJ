@@ -5,8 +5,8 @@ public class ProblemQueryDTO {
     private Byte difficulty;
     private String tag;
     private Boolean isVisible;
-    private int page;
-    private int size;
+    private int page = 1;
+    private int size = 20;
 
     public ProblemQueryDTO() {
     }

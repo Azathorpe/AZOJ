@@ -12,6 +12,7 @@ import org.example.azoi.service.ProblemService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class ProblemController {
 
     // Tips: GET方法 不需要在入参加上RequestBody,Spring会自动把拼接的参数绑定进去，没有的字段就是null
     @GetMapping("/list")
-    public ResponseEntity<Result<List<ProblemSimpleInfoVO>>> getProblemListBy(ProblemQueryDTO problemQueryDTO){
+    public ResponseEntity<Result<List<ProblemSimpleInfoVO>>> getProblemListBy(ProblemQueryDTO problemQueryDTO) {
         Result<List<ProblemSimpleInfoVO>> result = problemService.getProblems(problemQueryDTO);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.OK).body(result)
@@ -34,7 +35,7 @@ public class ProblemController {
     }
 
     @GetMapping("/{problemId}")
-    public ResponseEntity<Result<ProblemInfoVO>> getProblemInfo(@PathVariable Long problemId){
+    public ResponseEntity<Result<ProblemInfoVO>> getProblemInfo(@PathVariable Long problemId) {
         Result<ProblemInfoVO> result = problemService.getProblem(problemId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.OK).body(result)
@@ -42,7 +43,7 @@ public class ProblemController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Result<ProblemInfoVO>> createProblem(@RequestBody ProblemCreateDTO problemCreateDTO){
+    public ResponseEntity<Result<ProblemInfoVO>> createProblem(@RequestBody ProblemCreateDTO problemCreateDTO) {
         Result<ProblemInfoVO> result = problemService.createProblem(problemCreateDTO);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.OK).body(result)
@@ -50,8 +51,11 @@ public class ProblemController {
     }
 
     @PostMapping("/{problemId}/files")
-    public ResponseEntity<Result<List<ProblemFileVO>>> createProblemFile(@PathVariable Long problemId, List<ProblemFileDTO> problemFileDTOS){
-        Result<List<ProblemFileVO>> result = problemService.createProblemFile(problemId ,problemFileDTOS);
+    public ResponseEntity<Result<List<ProblemFileVO>>> createProblemFile(
+            @PathVariable Long problemId,
+            @RequestParam("files") MultipartFile[] files,
+            @RequestParam("fileTypes") Byte[] fileTypes) {
+        Result<List<ProblemFileVO>> result = problemService.createProblemFile(problemId, files, fileTypes);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.OK).body(result)
                 : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
@@ -59,7 +63,7 @@ public class ProblemController {
 
     @DeleteMapping("/soft/{problemId}")
     //软删除题目
-    public ResponseEntity<Result<Void>> removeProblem(@PathVariable Long problemId){
+    public ResponseEntity<Result<Void>> removeProblem(@PathVariable Long problemId) {
         Result<Void> result = problemService.removeProblem(problemId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.OK).body(result)
@@ -67,7 +71,7 @@ public class ProblemController {
     }
 
     @DeleteMapping("/delete/{problemId}")
-    public ResponseEntity<Result<Void>> deleteProblem(@PathVariable Long problemId){
+    public ResponseEntity<Result<Void>> deleteProblem(@PathVariable Long problemId) {
         Result<Void> result = problemService.deleteProblem(problemId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.OK).body(result)
