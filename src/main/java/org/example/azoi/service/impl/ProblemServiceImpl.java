@@ -7,6 +7,7 @@ import org.example.azoi.dto.problemtransmit.ProblemInfoVO;
 import org.example.azoi.dto.problemtransmit.ProblemQueryDTO;
 import org.example.azoi.dto.problemtransmit.ProblemSimpleInfoVO;
 import org.example.azoi.dto.problemtransmit.othertransmit.ProblemFileDTO;
+import org.example.azoi.dto.problemtransmit.othertransmit.ProblemFileVO;
 import org.example.azoi.dto.problemtransmit.othertransmit.ProblemSampleDTO;
 import org.example.azoi.dto.problemtransmit.othertransmit.ProblemTagDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
@@ -172,6 +173,25 @@ public class ProblemServiceImpl implements ProblemService {
         return new Result<>(new ProblemInfoVO(problem),
                 Result.SUCCESS,
                 sb.toString());
+    }
+
+    @Override
+    public Result<List<ProblemFileVO>> createProblemFile(List<ProblemFileDTO> problemFileDTOS) {
+        //检查问题文件是否存在
+        Optional<Problem> problem = problemRepository.findById(problemFileDTOS.get(0).getProblemId());
+        if(problem.isEmpty())
+            return new Result<>(null, Result.FAIL, "can't find problem file");
+
+        List<ProblemFileVO> pfs = new ArrayList<>();
+
+        int testPoint = 1;
+        for(ProblemFileDTO pff : problemFileDTOS){
+            Result<Void> result = uploadFile(pff, problem.get(), testPoint);
+            testPoint++;
+            pfs.add(new ProblemFileVO(result.getCode() ,result.getMsg()));
+        }
+
+        return new Result<>(pfs, Result.SUCCESS, "please check pfs details");
     }
 
     @Override

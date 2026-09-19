@@ -6,6 +6,8 @@ import org.example.azoi.dto.problemtransmit.ProblemCreateDTO;
 import org.example.azoi.dto.problemtransmit.ProblemInfoVO;
 import org.example.azoi.dto.problemtransmit.ProblemQueryDTO;
 import org.example.azoi.dto.problemtransmit.ProblemSimpleInfoVO;
+import org.example.azoi.dto.problemtransmit.othertransmit.ProblemFileDTO;
+import org.example.azoi.dto.problemtransmit.othertransmit.ProblemFileVO;
 import org.example.azoi.service.ProblemService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +47,11 @@ public class ProblemController {
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.OK).body(result)
                 : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
+
+    @PostMapping("/{problemId}/files")
+    public ResponseEntity<Result<ProblemFileVO>> createProblemFile(List<ProblemFileDTO> problemFileDTOS){
+        
     }
 
     @DeleteMapping("/soft/{problemId}")
