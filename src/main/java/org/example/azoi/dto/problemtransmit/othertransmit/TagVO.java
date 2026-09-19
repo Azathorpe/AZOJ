@@ -1,6 +1,7 @@
 package org.example.azoi.dto.problemtransmit.othertransmit;
 
 import jakarta.persistence.Column;
+import org.example.azoi.model.problem_model.Tag;
 
 import java.time.Instant;
 
@@ -10,6 +11,12 @@ public class TagVO {
     private Instant createdAt;
 
     public TagVO() {
+    }
+
+    public TagVO(Tag tag){
+        this.name = tag.getName();
+        this.color = tag.getColor();
+        this.createdAt = tag.getCreatedAt();
     }
 
     public TagVO(String name, String color, Instant createdAt) {
