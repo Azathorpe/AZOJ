@@ -5,7 +5,7 @@ import org.example.azoi.dto.Result;
 import org.example.azoi.dto.usertransmit.UserCurrentVO;
 import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
-import org.example.azoi.model.User;
+import org.example.azoi.model.user_model.User;
 
 import java.util.List;
 

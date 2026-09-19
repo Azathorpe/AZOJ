@@ -1,4 +1,4 @@
-package org.example.azoi.model;
+package org.example.azoi.model.user_model;
 
 import jakarta.persistence.*;
 

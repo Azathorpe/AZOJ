@@ -2,10 +2,10 @@ package org.example.azoi.service.impl;
 
 import org.example.azoi.dto.Result;
 import org.example.azoi.dto.teamtransmit.TeamUserIDDTO;
-import org.example.azoi.model.Team;
-import org.example.azoi.model.TeamMember;
-import org.example.azoi.model.TeamMemberId;
-import org.example.azoi.model.User;
+import org.example.azoi.model.team_model.Team;
+import org.example.azoi.model.team_model.TeamMember;
+import org.example.azoi.model.team_model.TeamMemberId;
+import org.example.azoi.model.user_model.User;
 import org.example.azoi.service.TeamMemberService;
 import org.example.azoi.utils.repository.TeamMemberRepository;
 import org.example.azoi.utils.repository.TeamRepository;

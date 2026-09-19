@@ -2,10 +2,10 @@ package org.example.azoi.service.impl;
 
 import org.example.azoi.dto.Result;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
-import org.example.azoi.model.Role;
-import org.example.azoi.model.User;
-import org.example.azoi.model.UserRole;
-import org.example.azoi.model.UserRoleId;
+import org.example.azoi.model.team_model.Role;
+import org.example.azoi.model.user_model.User;
+import org.example.azoi.model.user_model.UserRole;
+import org.example.azoi.model.user_model.UserRoleId;
 import org.example.azoi.service.UserRoleService;
 import org.example.azoi.utils.repository.RoleRepository;
 import org.example.azoi.utils.repository.UserRepository;

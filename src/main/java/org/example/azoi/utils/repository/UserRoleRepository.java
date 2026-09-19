@@ -1,11 +1,10 @@
 package org.example.azoi.utils.repository;
 
-import org.example.azoi.model.User;
-import org.example.azoi.model.UserRole;
-import org.example.azoi.model.UserRoleId;
+import org.example.azoi.model.user_model.User;
+import org.example.azoi.model.user_model.UserRole;
+import org.example.azoi.model.user_model.UserRoleId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;

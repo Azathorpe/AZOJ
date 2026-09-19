@@ -1,6 +1,6 @@
 package org.example.azoi.dto.usertransmit;
 
-import org.example.azoi.model.User;
+import org.example.azoi.model.user_model.User;
 
 import java.time.Instant;
 
