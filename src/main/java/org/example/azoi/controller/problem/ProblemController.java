@@ -40,7 +40,7 @@ public class ProblemController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Result<ProblemInfoVO>> createProblem(ProblemCreateDTO problemCreateDTO){
+    public ResponseEntity<Result<ProblemInfoVO>> createProblem(@RequestBody ProblemCreateDTO problemCreateDTO){
         Result<ProblemInfoVO> result = problemService.createProblem(problemCreateDTO);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.OK).body(result)

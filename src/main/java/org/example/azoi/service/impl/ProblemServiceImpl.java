@@ -146,20 +146,20 @@ public class ProblemServiceImpl implements ProblemService {
             problemSampleRepository.save(problemSample);
         }
 
-        //file
+        //file (git 分支 separation 分离这个方法为创建题目 + 单独上传测试文件)
         //文件名以题目名字+测试点名字.in拼接而成
-        List<ProblemFileDTO> problemFiles = problemCreateDTO.getProblemFiles();
-        index = 0;
-        for (ProblemFileDTO problemFileDTO : problemFiles) {
-            index++;
-            Result<Void> fileResult = uploadFile(problemFileDTO, problem, index);
-
-            if (fileResult.getCode() == Result.FAIL) {
-                sb.append("TestPoint ").append(index).append("FAILED, Reason: ").append(fileResult.getMsg()).append("\n");
-                throw new BusinessException("文件上传失败: " + sb);
-            }else
-                sb.append("TestPoint ").append(index).append("SUCCESS\n");
-        }
+//        List<ProblemFileDTO> problemFiles = problemCreateDTO.getProblemFiles();
+//        index = 0;
+//        for (ProblemFileDTO problemFileDTO : problemFiles) {
+//            index++;
+//            Result<Void> fileResult = uploadFile(problemFileDTO, problem, index);
+//
+//            if (fileResult.getCode() == Result.FAIL) {
+//                sb.append("TestPoint ").append(index).append("FAILED, Reason: ").append(fileResult.getMsg()).append("\n");
+//                throw new BusinessException("文件上传失败: " + sb);
+//            }else
+//                sb.append("TestPoint ").append(index).append("SUCCESS\n");
+//        }
 
         //TAGS FIXME:这里估计会有bug 记得修复一下
         List<ProblemTagDTO> tags = problemCreateDTO.getProblemTags();
