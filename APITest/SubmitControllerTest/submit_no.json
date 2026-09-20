@@ -1,0 +1,6 @@
+{
+    "userId": 1,
+    "problemId": 1,
+    "language": "cpp",
+    "code": "#include <iostream>\nint main() {\n    int a, b;\n    std::cin >> a >> b;\n    std::cout << a + b << std::endl;\n    return 0;\n}"
+}

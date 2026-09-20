@@ -1,0 +1,11 @@
+[Host]
+http://localhost:8080/submit/list?contestId=1
+
+[Method]
+GET
+
+[Backend]
+curl
+
+[BackendOptions]
+-H "Content-Type: application/json"

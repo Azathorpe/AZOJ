@@ -23,8 +23,9 @@ public class SubmitController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<Result<List<SubmitVO>>> getSubmitList(@RequestBody SubmitQueryDTO submitQueryDTO) {
-        Result<List<SubmitVO>> result = submissionService.getSubmits(submitQueryDTO);
+    public ResponseEntity<Result<List<SubmitVO>>> getSubmitList(SubmitQueryDTO submitQueryDTO) {
+        // 如果没有查询条件  那就默认查询
+        Result<List<SubmitVO>> result = submissionService.getSubmits(submitQueryDTO == null ? new SubmitQueryDTO() : submitQueryDTO);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.OK).body(result)
                 : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);

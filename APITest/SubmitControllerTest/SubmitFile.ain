@@ -1,0 +1,5 @@
+curl -X POST http://localhost:8080/problem/submitanswer \
+  -F "userId=21" \
+  -F "problemId=2" \
+  -F "language=cpp" \
+  -F "file=@/home/azathorpe/Projects/AZOI/APITest/SubmitControllerTest/answer.cpp"

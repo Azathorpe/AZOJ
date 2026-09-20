@@ -99,15 +99,15 @@ public class SubmissionServiceImpl implements SubmissionService {
             List<Predicate> predicates = new ArrayList<>();
 
             if(query.getUserId() != null){
-                predicates.add(criteriaBuilder.equal(root.get("user_id").as(Long.class), query.getUserId()));
+                predicates.add(criteriaBuilder.equal(root.get("userId").as(Long.class), query.getUserId()));
             }
 
             if(query.getProblemId() != null){
-                predicates.add(criteriaBuilder.equal(root.get("problem_id").as(Long.class), query.getProblemId()));
+                predicates.add(criteriaBuilder.equal(root.get("problemId").as(Long.class), query.getProblemId()));
             }
 
             if(query.getContestId() != null){
-                predicates.add(criteriaBuilder.equal(root.get("contest_id").as(Long.class), query.getContestId()));
+                predicates.add(criteriaBuilder.equal(root.get("contestId").as(Long.class), query.getContestId()));
             }
 
             if(query.getStatus() != -1){
@@ -184,8 +184,7 @@ public class SubmissionServiceImpl implements SubmissionService {
                 Long.toString(sub.getProblemId()));
         Path folderPath = Paths.get(
                 rootPath,
-                submitPath,
-                filePath.toString()
+                submitPath
         );
 
         sub.setAnswerFileSize(file.getSize());
