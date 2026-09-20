@@ -8,11 +8,13 @@ import org.example.azoi.dto.submittransmit.SubmitQueryDTO;
 import org.example.azoi.dto.submittransmit.SubmitVO;
 import org.example.azoi.model.Submission;
 import org.example.azoi.model.problem_model.Problem;
+import org.example.azoi.model.user_model.User;
 import org.example.azoi.service.SubmissionService;
 import org.example.azoi.utils.LangParser;
 import org.example.azoi.utils.exception.BusinessException;
 import org.example.azoi.utils.repository.ProblemRepository;
 import org.example.azoi.utils.repository.SubmissionRepository;
+import org.example.azoi.utils.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -44,10 +46,12 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     private final SubmissionRepository submissionRepository;
     private final ProblemRepository problemRepository;
+    private final UserRepository userRepository;
 
-    public SubmissionServiceImpl(SubmissionRepository submissionRepository, ProblemRepository problemRepository) {
+    public SubmissionServiceImpl(SubmissionRepository submissionRepository, ProblemRepository problemRepository, UserRepository userRepository) {
         this.submissionRepository = submissionRepository;
         this.problemRepository = problemRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -61,6 +65,10 @@ public class SubmissionServiceImpl implements SubmissionService {
         String language = submitDTO.getLanguage();
 
         Submission saver = new Submission();
+
+        Optional<User> user = userRepository.findById(userId);
+        if(user.isEmpty())
+            throw new BusinessException("为找到用户，请注册或者联系管理员");
         saver.setUserId(userId);
 
         //检查这个Problem是否存在
@@ -136,6 +144,10 @@ public class SubmissionServiceImpl implements SubmissionService {
         SubmitVO result = new SubmitVO();
 
         Submission saver = new Submission();
+
+        Optional<User> user = userRepository.findById(userId);
+        if(user.isEmpty())
+            throw new BusinessException("为找到用户，请注册或者联系管理员");
         saver.setUserId(userId);
 
         //检查这个Problem是否存在
