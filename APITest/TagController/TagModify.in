@@ -1,0 +1,18 @@
+[Host]
+http://localhost:8080/tag/modify
+
+[Method]
+POST
+
+[Body]
+{
+    "id" : 10,
+    "name" : "BOSS",
+    "color" : "FFFFFF"
+}
+
+[Backend]
+curl
+
+[BackendOptions]
+-H "Content-Type: application/json"

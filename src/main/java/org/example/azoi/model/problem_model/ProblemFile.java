@@ -1,6 +1,7 @@
 package org.example.azoi.model.problem_model;
 
 import jakarta.persistence.*;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.Instant;
 
@@ -44,6 +45,13 @@ public class ProblemFile {
     @PrePersist
     public void onCreated(){
         this.createdAt = Instant.now();
+    }
+
+    /**
+     * 改下面记得先改这里
+     */
+    public static int getTypeCount(){
+        return 2;
     }
 
     public static String parseType(Byte fileType){
