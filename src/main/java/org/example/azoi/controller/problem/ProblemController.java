@@ -40,7 +40,7 @@ public class ProblemController {
 
     @GetMapping("/{problemId}")
     public ResponseEntity<Result<ProblemInfoVO>> getProblemInfo(@PathVariable Long problemId) {
-        Result<ProblemInfoVO> result = problemService.getProblem(problemId);
+        Result<ProblemInfoVO> result = problemService.getProblemById(problemId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.OK).body(result)
                 : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);

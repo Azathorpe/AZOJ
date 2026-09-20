@@ -1,7 +1,10 @@
 package org.example.azoi.service.impl;
 
+import jakarta.persistence.criteria.Predicate;
 import org.example.azoi.dto.Result;
+import org.example.azoi.dto.problemtransmit.ProblemSimpleInfoVO;
 import org.example.azoi.dto.submittransmit.SubmitDTO;
+import org.example.azoi.dto.submittransmit.SubmitQueryDTO;
 import org.example.azoi.dto.submittransmit.SubmitVO;
 import org.example.azoi.model.Submission;
 import org.example.azoi.model.problem_model.Problem;
@@ -11,6 +14,10 @@ import org.example.azoi.utils.exception.BusinessException;
 import org.example.azoi.utils.repository.ProblemRepository;
 import org.example.azoi.utils.repository.SubmissionRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
@@ -22,7 +29,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 @Service
 public class SubmissionServiceImpl implements SubmissionService {
@@ -73,6 +83,51 @@ public class SubmissionServiceImpl implements SubmissionService {
         saver = submissionRepository.save(saver);
 
         return new Result<>(result.from(saver), Result.SUCCESS, "ok");
+    }
+
+    @Override
+    public Result<List<SubmitVO>> getSubmits(SubmitQueryDTO query) {
+        Specification<Submission> spec = (root, query1, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if(query.getUserId() != null){
+                predicates.add(criteriaBuilder.equal(root.get("user_id").as(Long.class), query.getUserId()));
+            }
+
+            if(query.getProblemId() != null){
+                predicates.add(criteriaBuilder.equal(root.get("problem_id").as(Long.class), query.getProblemId()));
+            }
+
+            if(query.getContestId() != null){
+                predicates.add(criteriaBuilder.equal(root.get("contest_id").as(Long.class), query.getContestId()));
+            }
+
+            if(query.getStatus() != -1){
+                predicates.add(criteriaBuilder.equal(root.get("status").as(Byte.class), query.getStatus()));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Pageable pageable = PageRequest.of(
+                Math.max(query.getPage() - 1, 0),
+                query.getSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        return new Result<>(
+                submissionRepository.findAll(spec, pageable).stream().map(SubmitVO::new).toList(),
+                Result.SUCCESS,
+                "ok"
+        );
+    }
+
+    @Override
+    public Result<SubmitVO> getSubmit(Long submissionId) {
+        Optional<Submission> submission = submissionRepository.findById(submissionId);
+        return submission
+                .map(value -> new Result<>(new SubmitVO(value), Result.SUCCESS, "ok"))
+                .orElseGet(() -> new Result<>(null, Result.FAIL, "未找到这个提交"));
     }
 
     @Override

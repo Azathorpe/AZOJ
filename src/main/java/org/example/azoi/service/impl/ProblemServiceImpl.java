@@ -106,7 +106,7 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     @Override
-    public Result<ProblemInfoVO> getProblem(Long problemId) {
+    public Result<ProblemInfoVO> getProblemById(Long problemId) {
         Optional<Problem> result = problemRepository.findById(problemId);
 
         if (result.isPresent()) {
