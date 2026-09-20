@@ -188,6 +188,7 @@ public class ProblemServiceImpl implements ProblemService {
 
         int[] index = new int[ProblemFile.getTypeCount()];
         //获取已经上传的所有测试文件，/2得到新的索引
+        //FIXME: 这里可能会影响效率
         int len = problemFileRepository.findAllByProblemId(problemId).size() >> 1;
         Arrays.fill(index, len + 1);
 

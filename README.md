@@ -23,3 +23,17 @@ This is a simple OJ.Use SpringBoot.
 │ 封禁管理 │ 题解讨论 │ 沙箱     │ 赛后重测    │
 
 └──────────┴──────────┴──────────┴────────────┘
+
+用户提交
+↓
+后端 Service：
+1. 存 Submission（status=Pending）
+2. 推 submissionId 到 Redis List
+3. 立即返回 submissionId
+   ↓
+   判题机（独立线程）：
+1. 从 Redis List 拉 submissionId
+2. 判题
+3. 回写 Submission.status
+   ↓
+   前端轮询 / WebSocket 拿结果

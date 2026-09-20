@@ -6,6 +6,7 @@ import org.example.azoi.dto.problemtransmit.ProblemSimpleInfoVO;
 import org.example.azoi.dto.submittransmit.SubmitDTO;
 import org.example.azoi.dto.submittransmit.SubmitQueryDTO;
 import org.example.azoi.dto.submittransmit.SubmitVO;
+import org.example.azoi.judge.JudgeTaskProducer;
 import org.example.azoi.model.Submission;
 import org.example.azoi.model.problem_model.Problem;
 import org.example.azoi.model.user_model.User;
@@ -22,6 +23,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -47,50 +50,13 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final SubmissionRepository submissionRepository;
     private final ProblemRepository problemRepository;
     private final UserRepository userRepository;
+    private final JudgeTaskProducer judgeTaskProducer;
 
-    public SubmissionServiceImpl(SubmissionRepository submissionRepository, ProblemRepository problemRepository, UserRepository userRepository) {
+    public SubmissionServiceImpl(SubmissionRepository submissionRepository, ProblemRepository problemRepository, UserRepository userRepository, JudgeTaskProducer judgeTaskProducer) {
         this.submissionRepository = submissionRepository;
         this.problemRepository = problemRepository;
         this.userRepository = userRepository;
-    }
-
-    @Override
-    @Transactional
-    public Result<SubmitVO> submitCode(SubmitDTO submitDTO) {
-        SubmitVO result = new SubmitVO();
-
-        Long userId = submitDTO.getUserId();
-        Long problemId = submitDTO.getProblemId();
-        Long contestId = submitDTO.getContestId();
-        String language = submitDTO.getLanguage();
-
-        Submission saver = new Submission();
-
-        Optional<User> user = userRepository.findById(userId);
-        if(user.isEmpty())
-            throw new BusinessException("为找到用户，请注册或者联系管理员");
-        saver.setUserId(userId);
-
-        //检查这个Problem是否存在
-        Optional<Problem> problem = problemRepository.findById(problemId);
-        if(problem.isEmpty())
-            throw new BusinessException("没有找到这道题目");
-        result.setProblemTitle(problem.get().getTitle());
-        saver.setProblemId(problemId);
-        //TODO ：后面也许这里可以添加校验contest的
-        saver.setContestId(contestId);
-
-        if(language == null || language.isBlank())
-            throw new BusinessException("语言不能为空");
-        //校验language是否合法
-        LangParser.normalize(language);
-        saver.setLanguage(language);
-
-        saver.setCode(submitDTO.getCode());
-
-        saver = submissionRepository.save(saver);
-
-        return new Result<>(result.from(saver), Result.SUCCESS, "ok");
+        this.judgeTaskProducer = judgeTaskProducer;
     }
 
     @Override
@@ -98,19 +64,19 @@ public class SubmissionServiceImpl implements SubmissionService {
         Specification<Submission> spec = (root, query1, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if(query.getUserId() != null){
+            if (query.getUserId() != null) {
                 predicates.add(criteriaBuilder.equal(root.get("userId").as(Long.class), query.getUserId()));
             }
 
-            if(query.getProblemId() != null){
+            if (query.getProblemId() != null) {
                 predicates.add(criteriaBuilder.equal(root.get("problemId").as(Long.class), query.getProblemId()));
             }
 
-            if(query.getContestId() != null){
+            if (query.getContestId() != null) {
                 predicates.add(criteriaBuilder.equal(root.get("contestId").as(Long.class), query.getContestId()));
             }
 
-            if(query.getStatus() != -1){
+            if (query.getStatus() != -1) {
                 predicates.add(criteriaBuilder.equal(root.get("status").as(Byte.class), query.getStatus()));
             }
 
@@ -131,6 +97,55 @@ public class SubmissionServiceImpl implements SubmissionService {
     }
 
     @Override
+    @Transactional
+    public Result<SubmitVO> submitCode(SubmitDTO submitDTO) {
+        SubmitVO result = new SubmitVO();
+
+        Long userId = submitDTO.getUserId();
+        Long problemId = submitDTO.getProblemId();
+        Long contestId = submitDTO.getContestId();
+        String language = submitDTO.getLanguage();
+
+        Submission saver = new Submission();
+
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty())
+            throw new BusinessException("为找到用户，请注册或者联系管理员");
+        saver.setUserId(userId);
+
+        //检查这个Problem是否存在
+        Optional<Problem> problem = problemRepository.findById(problemId);
+        if (problem.isEmpty())
+            throw new BusinessException("没有找到这道题目");
+        result.setProblemTitle(problem.get().getTitle());
+        saver.setProblemId(problemId);
+        //TODO ：后面也许这里可以添加校验contest的
+        saver.setContestId(contestId);
+
+        if (language == null || language.isBlank())
+            throw new BusinessException("语言不能为空");
+        //校验language是否合法
+        LangParser.normalize(language);
+        saver.setLanguage(language);
+
+        saver.setCode(submitDTO.getCode());
+
+        Submission saved = submissionRepository.save(saver);
+
+        // 事务提交后再推队列
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        judgeTaskProducer.push(saved.getId());
+                    }
+                }
+        );
+
+        return new Result<>(result.from(saved), Result.SUCCESS, "ok");
+    }
+
+    @Override
     public Result<SubmitVO> getSubmit(Long submissionId) {
         Optional<Submission> submission = submissionRepository.findById(submissionId);
         return submission
@@ -146,32 +161,44 @@ public class SubmissionServiceImpl implements SubmissionService {
         Submission saver = new Submission();
 
         Optional<User> user = userRepository.findById(userId);
-        if(user.isEmpty())
+        if (user.isEmpty())
             throw new BusinessException("为找到用户，请注册或者联系管理员");
         saver.setUserId(userId);
 
         //检查这个Problem是否存在
         Optional<Problem> problem = problemRepository.findById(problemId);
-        if(problem.isEmpty())
+        if (problem.isEmpty())
             throw new BusinessException("没有找到这道题目");
         result.setProblemTitle(problem.get().getTitle());
         saver.setProblemId(problemId);
         //TODO ：后面也许这里可以添加校验contest的
         saver.setContestId(contestId);
 
-        if(language == null || language.isBlank())
+        if (language == null || language.isBlank())
             throw new BusinessException("语言不能为空");
         //校验language是否合法
         LangParser.normalize(language);
         saver.setLanguage(language);
 
-        if(file == null || file.isEmpty())
+        if (file == null || file.isEmpty())
             throw new BusinessException("文件不能为空");
 
-        saver = submissionRepository.save(saver);
+        Submission saved = submissionRepository.save(saver);
+
         Result<Void> res = uploadFile(saver, file);
+
+        // 事务提交后再推队列
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        judgeTaskProducer.push(saved.getId());
+                    }
+                }
+        );
+
         if (res.getCode() == Result.SUCCESS)
-            return new Result<>(result.from(saver), Result.SUCCESS, "ok");
+            return new Result<>(result.from(saved), Result.SUCCESS, "ok");
         throw new BusinessException(res.getMsg());
     }
 
@@ -197,7 +224,7 @@ public class SubmissionServiceImpl implements SubmissionService {
             //通过lang获取后缀
             String suff = LangParser.toExtension(sub.getLanguage());
             filePath = filePath.resolve(sub.getId() + "." + suff);
-            sub.setAnswerFilePath(file.toString());
+            sub.setAnswerFilePath(String.valueOf(filePath));
             filePath = folderPath.resolve(filePath);
 
             //Write

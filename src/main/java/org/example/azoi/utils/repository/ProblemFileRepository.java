@@ -9,5 +9,5 @@ import java.util.List;
 public interface ProblemFileRepository extends JpaRepository<ProblemFile, Long> {
     List<ProblemFile> findAllByProblemId(Long problemId);
 
-    void deleteAllByProblemId(Long problemId);
+    List<ProblemFile> findAllByProblemIdOrderByCreatedAtAsc(Long problemId);
 }

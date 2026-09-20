@@ -1,6 +1,7 @@
 package org.example.azoi.model;
 
 import jakarta.persistence.*;
+import org.example.azoi.utils.exception.BusinessException;
 
 import java.time.Instant;
 
@@ -98,6 +99,42 @@ public class Submission {
         this.createdAt = createdAt;
         this.judgedAt = judgedAt;
         this.code = code;
+    }
+
+    public static String parseStatus(byte status){
+        switch (status){
+            case STATUS_PENDING -> {
+                return "PENDING";
+            }
+            case STATUS_JUDGING -> {
+                return "JUDGING";
+            }
+            case STATUS_AC -> {
+                return "AC";
+            }
+            case STATUS_WA -> {
+                return "WA";
+            }
+            case STATUS_TLE -> {
+                return "TLE";
+            }
+            case STATUS_MLE -> {
+                return "MLE";
+            }
+            case STATUS_RE -> {
+                return "RE";
+            }
+            case STATUS_CE -> {
+                return "CE";
+            }
+            case STATUS_OLE -> {
+                return "OLE";
+            }
+            case STATUS_UKE -> {
+                return "UKE";
+            }
+            default -> throw new BusinessException("Unexpected value: " + status);
+        }
     }
 
     public Long getId() {

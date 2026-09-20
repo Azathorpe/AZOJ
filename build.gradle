@@ -24,6 +24,9 @@ dependencies {
     // 加密...
     implementation 'org.springframework.security:spring-security-crypto'
 
+    //REDIS
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
     implementation 'com.alibaba:fastjson:2.0.54'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.4.1'
