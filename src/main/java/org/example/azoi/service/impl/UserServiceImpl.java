@@ -5,10 +5,12 @@ import org.example.azoi.dto.Result;
 import org.example.azoi.dto.usertransmit.UserCurrentVO;
 import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
+import org.example.azoi.dto.usertransmit.UserLoginVO;
 import org.example.azoi.model.user_model.User;
 import org.example.azoi.service.RoleService;
 import org.example.azoi.service.UserRoleService;
 import org.example.azoi.service.UserService;
+import org.example.azoi.utils.JwtUtil;
 import org.example.azoi.utils.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,18 +30,20 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final RoleService roleService;
     private final UserRoleService userRoleService;
+    private final JwtUtil jwtUtil;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleServiceImpl roleService, UserRoleService userRoleService) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleServiceImpl roleService, UserRoleService userRoleService, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleService = roleService;
         this.userRoleService = userRoleService;
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
-    public Result<User> getUserById(Long id){
+    public Result<User> getUserById(Long id) {
         Optional<User> userById = userRepository.getUserById(id);
-        if(userById.isEmpty())
+        if (userById.isEmpty())
             return new Result<User>(null, Result.FAIL, "User not found");
         return new Result<>(userById.get(), Result.SUCCESS, "ok");
     }
@@ -48,7 +52,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public Result<List<UserInfoVO>> registerUsers(List<UserDTO> user) {
         List<UserInfoVO> res = new ArrayList<>();
-        for(UserDTO ud : user)
+        for (UserDTO ud : user)
             res.add(registerUser(ud).getObj());
         return new Result<>(res, Result.SUCCESS, "ok");
     }
@@ -56,7 +60,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Result<UserInfoVO> getUserInfoById(Long id) {
         Result<User> userResult = getUserById(id);
-        if(userResult.getCode() == Result.SUCCESS)
+        if (userResult.getCode() == Result.SUCCESS)
             return new Result<>(new UserInfoVO(userResult.getObj()), Result.SUCCESS, "ok");
         else
             return new Result<>(null, Result.FAIL, "User not found");
@@ -65,7 +69,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Result<UserCurrentVO> getCurrentUser(Long id) {
         Result<User> userResult = getUserById(id);
-        if(userResult.getCode() == Result.SUCCESS)
+        if (userResult.getCode() == Result.SUCCESS)
             return new Result<>(new UserCurrentVO(userResult.getObj()), Result.SUCCESS, "ok");
         else
             return new Result<>(null, Result.FAIL, "User not found");
@@ -77,27 +81,29 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(id);
         //在删除用户的时候，也要把他和Role的关系删除掉
         userRoleService.removeUserRole(id);
-        return new Result<>(null,  Result.SUCCESS, "User deleted");
+        return new Result<>(null, Result.SUCCESS, "User deleted");
     }
 
     @Override
     @Transactional
-    public Result<Boolean> loginUser(UserDTO user, HttpServletRequest HR) {
+    public Result<UserLoginVO> loginUser(UserDTO user, HttpServletRequest HR) {
         List<User> usersByUsername = userRepository.getUsersByUsername(user.getUsername());
-        for(User u : usersByUsername){
-            if(passwordEncoder.matches(user.getPassword(), u.getPasswordHash())) {
+        for (User u : usersByUsername) {
+            if (passwordEncoder.matches(user.getPassword(), u.getPasswordHash())) {
                 u.setLastLoginAt(Instant.now());
                 u.setLastLoginIp(getClientIp(HR));
-                userRepository.save(u);
-                return new Result<>(Boolean.TRUE, Result.SUCCESS, "User logged in");
+                User loginedUser = userRepository.save(u);
+                //生成jwt
+                String token = jwtUtil.generateToken(loginedUser.getId(), loginedUser.getUsername());
+                return new Result<>(new UserLoginVO(token, new UserInfoVO(loginedUser)), Result.SUCCESS, "User logged in");
             }
         }
-        return  new Result<>(Boolean.FALSE, Result.FAIL, "User not found or password incorrect");
+        return new Result<>(null, Result.FAIL, "User not found or password incorrect");
     }
 
     @Override
     @Transactional
-    public Result<UserInfoVO> registerUser(UserDTO user){
+    public Result<UserInfoVO> registerUser(UserDTO user) {
         User saver = new User();
         saver.setUsername(user.getUsername());
         saver.setEmail(user.getEmail());
@@ -107,9 +113,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Result<UserInfoVO> registerUser(User user){
+    public Result<UserInfoVO> registerUser(User user) {
         Result<Boolean> res = checkUsernameAndEmail(user);
-        if(res.getCode() == Result.FAIL)
+        if (res.getCode() == Result.FAIL)
             return new Result<>(null, Result.FAIL, res.getMsg());
 
         User save = userRepository.save(user);
@@ -128,11 +134,11 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    private Result<Boolean> checkUsernameAndEmail(User user){
+    private Result<Boolean> checkUsernameAndEmail(User user) {
         if (userRepository.existsUserByUsername(user.getUsername()))
             return new Result<>(Boolean.FALSE, Result.FAIL, "username exists");
 
-        if(userRepository.existsUserByEmail(user.getEmail()))
+        if (userRepository.existsUserByEmail(user.getEmail()))
             return new Result<>(Boolean.FALSE, Result.FAIL, "email exists");
         return new Result<>(Boolean.TRUE, Result.SUCCESS, "ok");
     }

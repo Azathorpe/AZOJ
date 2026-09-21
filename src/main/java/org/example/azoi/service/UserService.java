@@ -5,6 +5,7 @@ import org.example.azoi.dto.Result;
 import org.example.azoi.dto.usertransmit.UserCurrentVO;
 import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
+import org.example.azoi.dto.usertransmit.UserLoginVO;
 import org.example.azoi.model.user_model.User;
 
 import java.util.List;
@@ -56,5 +57,5 @@ public interface UserService {
      */
     Result<String> deleteUser(Long id);
 
-    Result<Boolean> loginUser(UserDTO user, HttpServletRequest HR);
+    Result<UserLoginVO> loginUser(UserDTO user, HttpServletRequest HR);
 }

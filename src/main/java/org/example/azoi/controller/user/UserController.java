@@ -5,9 +5,12 @@ import org.example.azoi.dto.Result;
 import org.example.azoi.dto.usertransmit.UserCurrentVO;
 import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
+import org.example.azoi.dto.usertransmit.UserLoginVO;
 import org.example.azoi.model.team_model.Role;
+import org.example.azoi.model.user_model.User;
 import org.example.azoi.service.UserRoleService;
 import org.example.azoi.service.UserService;
+import org.example.azoi.utils.JwtUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +29,7 @@ public class UserController {
     private final UserService userService;
     private final UserRoleService userRoleService;
 
-    public UserController(UserService userService, UserRoleService userRoleService) {
+    public UserController(UserService userService, UserRoleService userRoleService, JwtUtil jwtUtil) {
         this.userService = userService;
         this.userRoleService = userRoleService;
     }
@@ -87,8 +90,8 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Result<Boolean>> login(@RequestBody UserDTO user, HttpServletRequest httpServletRequest) {
-        Result<Boolean> result = userService.loginUser(user, httpServletRequest);
+    public ResponseEntity<Result<UserLoginVO>> login(@RequestBody UserDTO user, HttpServletRequest httpServletRequest) {
+        Result<UserLoginVO> result = userService.loginUser(user, httpServletRequest);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.ok(result)
                 : ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
