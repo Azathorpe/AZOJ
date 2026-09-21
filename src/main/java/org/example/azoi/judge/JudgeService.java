@@ -71,9 +71,10 @@ public class JudgeService {
         try {
             //Create User Compile Path
             Path path = Paths.get(rootPath, compileDir, submission.getUserId().toString(), submission.getProblemId().toString());
-            if(!Files.exists(path))
+            if(!Files.exists(path)) {
+                log.info("{} 不存在，正在创建", path);
                 Files.createDirectory(path);
-
+            }
             //获取所有测试例
             ArrayList<String> testList = new ArrayList<>();
             List<ProblemFile> files = problemFileRepository.findAllByProblemIdOrderByCreatedAtAsc(submission.getProblemId());
