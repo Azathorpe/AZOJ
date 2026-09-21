@@ -28,6 +28,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     /**
+     * Service
      * 获取所有的Roles<br/>
      * 请求地址: /role/get<br/>
      * 请求方法: /role/get
@@ -43,6 +44,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     /**
+     * Service
      * 添加新的Role(管理员接口)<br/>
      * 请求地址: /role/add<br/>
      * 请求方法: /role/add -> json
@@ -61,6 +63,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     /**
+     * Service
      * 更新一个Role(管理员接口)<br/>
      * 请求地址: /role/update<br/>
      * 请求方法: /role/update
@@ -84,6 +87,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     /**
+     * Service
      * 删除一个Role(管理员接口)<br/>
      * 请求地址: /role/delete<br/>
      * 请求方法: /role/delete?roleId=x
