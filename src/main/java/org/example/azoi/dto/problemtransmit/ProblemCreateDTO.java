@@ -58,7 +58,7 @@ public class ProblemCreateDTO {
     /**
      * 作者Id
      */
-    private Long createdBy;
+    private Long createdBy = -1L;
 
     /**
      * 样例

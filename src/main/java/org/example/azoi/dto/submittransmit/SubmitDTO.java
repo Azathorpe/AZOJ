@@ -1,7 +1,6 @@
 package org.example.azoi.dto.submittransmit;
 
 public class SubmitDTO {
-    private Long userId;
     private Long problemId;
     private Long contestId;
     private String language;
@@ -10,8 +9,7 @@ public class SubmitDTO {
     public SubmitDTO() {
     }
 
-    public SubmitDTO(Long userId, Long problemId, Long contestId, String language, String code) {
-        this.userId = userId;
+    public SubmitDTO(Long problemId, Long contestId, String language, String code) {
         this.problemId = problemId;
         this.contestId = contestId;
         this.language = language;
@@ -24,14 +22,6 @@ public class SubmitDTO {
 
     public void setCode(String code) {
         this.code = code;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
     }
 
     public Long getProblemId() {
