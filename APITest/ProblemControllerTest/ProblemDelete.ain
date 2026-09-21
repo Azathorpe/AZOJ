@@ -1,5 +1,9 @@
 [Host]
-http://localhost:8080/problem/delete/1
+http://localhost:8080/problem/delete/6
+
+[Headers]
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyMSIsInVzZXJuYW1lIjoiQXphemVsIiwiaWF0IjoxNzg5OTk0NDk0LCJleHAiOjE3OTAwODA4OTR9.XvDItUeE_AiXUbTB3odqtXbVyQuy7e4oHQXrzUSHwtY
 
 [Method]
 DELETE
