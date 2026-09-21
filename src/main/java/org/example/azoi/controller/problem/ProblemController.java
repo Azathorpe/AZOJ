@@ -140,7 +140,7 @@ public class ProblemController {
     public ResponseEntity<Result<SubmitVO>> submitProblemCode(
             @RequestBody SubmitDTO submitDTO,
             @CurrentUser Long requesterId) {
-        Result<SubmitVO> result = submissionService.submitCode(submitDTO);
+        Result<SubmitVO> result = submissionService.submitCode(submitDTO, requesterId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.OK).body(result)
                 : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);

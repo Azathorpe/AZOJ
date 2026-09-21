@@ -98,20 +98,19 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     @Override
     @Transactional
-    public Result<SubmitVO> submitCode(SubmitDTO submitDTO) {
+    public Result<SubmitVO> submitCode(SubmitDTO submitDTO, Long requesterId) {
         SubmitVO result = new SubmitVO();
 
-        Long userId = submitDTO.getUserId();
         Long problemId = submitDTO.getProblemId();
         Long contestId = submitDTO.getContestId();
         String language = submitDTO.getLanguage();
 
         Submission saver = new Submission();
 
-        Optional<User> user = userRepository.findById(userId);
+        Optional<User> user = userRepository.findById(requesterId);
         if (user.isEmpty())
             throw new BusinessException("为找到用户，请注册或者联系管理员");
-        saver.setUserId(userId);
+        saver.setUserId(requesterId);
 
         //检查这个Problem是否存在
         Optional<Problem> problem = problemRepository.findById(problemId);
