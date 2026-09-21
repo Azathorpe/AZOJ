@@ -1,7 +1,6 @@
 package org.example.azoi.service.impl;
 
 import org.example.azoi.dto.Result;
-import org.example.azoi.dto.teamtransmit.TeamUserIDDTO;
 import org.example.azoi.model.team_model.Team;
 import org.example.azoi.model.team_model.TeamMember;
 import org.example.azoi.model.team_model.TeamMemberId;
@@ -32,24 +31,23 @@ public class TeamMemberServiceImpl implements TeamMemberService {
 
     @Override
     @Transactional
-    public Result<String> addTeamMember(TeamUserIDDTO teamUserIDDTO) {
+    public Result<String> addTeamMember(Long teamId, Long userId) {
         //我们要判断这个user是否已经加入过团队了
-        if (getUserTeam(teamUserIDDTO.getUserId()).getCode() == Result.SUCCESS)
+        if (getUserTeam(userId).getCode() == Result.SUCCESS)
             return new Result<>(null, Result.FAIL, "You are already join a team");
 
         //fixme:判断用户id是否存在
-        Optional<User> u = userRepository.findById(teamUserIDDTO.getUserId());
+        Optional<User> u = userRepository.findById(userId);
         if(u.isEmpty())
             return new Result<>(null, Result.FAIL, "Can't find this user");
 
-        teamMemberRepository.save(new TeamMember(new TeamMemberId(teamUserIDDTO.getTeamId(), teamUserIDDTO.getUserId())));
+        teamMemberRepository.save(new TeamMember(new TeamMemberId(teamId, userId)));
         return new Result<>(null, Result.SUCCESS, "Member added successfully");
     }
 
     @Override
     @Transactional
-    public Result<String> removeTeamMember(TeamUserIDDTO teamUserIDDTO) {
-        Long userId = teamUserIDDTO.getUserId(), teamId = teamUserIDDTO.getTeamId();
+    public Result<String> removeTeamMember(Long teamId, Long userId) {
         //我们要判断这个user是否在这个团队
         Result<Team> team = getUserTeam(userId);
         if (team.getCode() == Result.FAIL)
