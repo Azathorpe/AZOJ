@@ -16,6 +16,8 @@ import org.example.azoi.utils.exception.BusinessException;
 import org.example.azoi.utils.repository.ProblemRepository;
 import org.example.azoi.utils.repository.SubmissionRepository;
 import org.example.azoi.utils.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +44,7 @@ import java.util.function.Supplier;
 @Service
 public class SubmissionServiceImpl implements SubmissionService {
 
+    private static final Logger log = LoggerFactory.getLogger(SubmissionServiceImpl.class);
     @Value("${azoi.storage.root}")
     private String rootPath;
     @Value("${azoi.storage.submit-dir}")
@@ -98,20 +101,19 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     @Override
     @Transactional
-    public Result<SubmitVO> submitCode(SubmitDTO submitDTO) {
+    public Result<SubmitVO> submitCode(SubmitDTO submitDTO, Long requesterId) {
         SubmitVO result = new SubmitVO();
 
-        Long userId = submitDTO.getUserId();
         Long problemId = submitDTO.getProblemId();
         Long contestId = submitDTO.getContestId();
         String language = submitDTO.getLanguage();
 
         Submission saver = new Submission();
 
-        Optional<User> user = userRepository.findById(userId);
+        Optional<User> user = userRepository.findById(requesterId);
         if (user.isEmpty())
             throw new BusinessException("为找到用户，请注册或者联系管理员");
-        saver.setUserId(userId);
+        saver.setUserId(requesterId);
 
         //检查这个Problem是否存在
         Optional<Problem> problem = problemRepository.findById(problemId);
@@ -155,7 +157,12 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     @Override
     @Transactional
-    public Result<SubmitVO> submitAnswer(Long userId, Long problemId, Long contestId, String language, MultipartFile file) {
+    public Result<SubmitVO> submitAnswer(
+            Long userId,
+            Long problemId,
+            Long contestId,
+            String language,
+            MultipartFile file) {
         SubmitVO result = new SubmitVO();
 
         Submission saver = new Submission();
@@ -217,19 +224,22 @@ public class SubmissionServiceImpl implements SubmissionService {
         sub.setAnswerFileSize(file.getSize());
 
         try {
-            //创建文件夹
+            //创建大文件夹
             Files.createDirectories(folderPath);
 
             //补全文件名
             //通过lang获取后缀
             String suff = LangParser.toExtension(sub.getLanguage());
             //如果是Java 那就单独创建一个Main.java吧，没办法bro,在评测完之后，再改名成${submissionId}.${filetype}
-            if(LangParser.toExtension(sub.getLanguage()).equals("java"))
+            if (LangParser.toExtension(sub.getLanguage()).equals("java"))
                 filePath = filePath.resolve("Main.java");
             else
                 filePath = filePath.resolve(sub.getId() + "." + suff);
             sub.setAnswerFilePath(String.valueOf(filePath));
             filePath = folderPath.resolve(filePath);
+
+            //创建小文件夹
+            Files.createDirectories(filePath.getParent());
 
             //Write
             try (InputStream is = file.getInputStream()) {

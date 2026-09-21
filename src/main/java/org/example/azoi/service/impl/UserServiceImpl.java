@@ -14,6 +14,8 @@ import org.example.azoi.service.RoleService;
 import org.example.azoi.service.UserRoleService;
 import org.example.azoi.service.UserService;
 import org.example.azoi.utils.JwtUtil;
+import org.example.azoi.utils.exception.BusinessException;
+import org.example.azoi.utils.repository.RoleRepository;
 import org.example.azoi.utils.repository.UserRepository;
 import org.example.azoi.utils.repository.UserRoleRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,12 +36,14 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserRoleRepository userRoleRepository;
+    private final RoleRepository roleRepository;
     private final JwtUtil jwtUtil;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, UserRoleService userRoleService, UserRoleRepository userRoleRepository, JwtUtil jwtUtil) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, UserRoleService userRoleService, UserRoleRepository userRoleRepository, RoleRepository roleRepository, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.userRoleRepository = userRoleRepository;
+        this.roleRepository = roleRepository;
         this.jwtUtil = jwtUtil;
     }
 
@@ -133,15 +137,16 @@ public class UserServiceImpl implements UserService {
 
         User save = userRepository.save(user);
 
+        Optional<Role> role = roleRepository.findById(Role.ROLE_NORMAL_id);
+        if(role.isEmpty())
+            throw new BusinessException("角色为空，请务必联系管理员");
+
         //注册了User之后，也同样需要把Role注册一下，默认先注册成普通用户 也就是id为1的普通用户
-        userRoleRepository.save(
-                new UserRole(
-                        new UserRoleId(
-                                user.getId(),
-                                Role.ROLE_NORMAL_id
-                        )
-                )
-        );
+        UserRole userRole = new UserRole();
+        userRole.setUser(save);
+        userRole.setRole(role.get());
+        userRole.setId(new UserRoleId(user.getId(), role.get().getId()));
+        userRoleRepository.save(userRole);
 
         return new Result<>(new UserInfoVO(save), Result.SUCCESS, "success");
     }

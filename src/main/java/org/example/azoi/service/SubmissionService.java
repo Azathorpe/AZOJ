@@ -11,7 +11,7 @@ import java.util.List;
 public interface SubmissionService {
     Result<SubmitVO> submitAnswer(Long userId, Long problemId, Long contestId, String language, MultipartFile file);
 
-    Result<SubmitVO> submitCode(SubmitDTO submitDTO);
+    Result<SubmitVO> submitCode(SubmitDTO submitDTO, Long requesterId);
 
     Result<List<SubmitVO>> getSubmits(SubmitQueryDTO query);
 

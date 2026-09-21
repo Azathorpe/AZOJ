@@ -130,8 +130,13 @@ public class ProblemServiceImpl implements ProblemService {
     @Override
     @Transactional
     public Result<ProblemInfoVO> createProblem(ProblemCreateDTO problemCreateDTO, Long requesterId) {
-        if (problemCreateDTO.getCreatedBy() == -1)
+        if (problemCreateDTO.getCreatedBy() == null)
             problemCreateDTO.setCreatedBy(requesterId);
+        else{
+            //检查这个作者是否存在
+            userRepository.findById(problemCreateDTO.getCreatedBy())
+                    .orElseThrow(() -> new BusinessException("这个作者不存在"));
+        }
 
 
         Problem problem = problemRepository.save(new Problem(problemCreateDTO));

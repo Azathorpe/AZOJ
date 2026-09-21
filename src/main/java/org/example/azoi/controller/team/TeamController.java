@@ -82,16 +82,13 @@ public class TeamController {
      * 退出一个Team<br/>
      * 请求地址: /user/quit<br/>
      * 请求方法: /user/quit?teamId=x<br/>
-     *
-     * @param teamId 团队Id
-     * @param userId 用户Id
+     * @param requesterId 请求者Id
      * @return 我也不知道是啥，祈祷不会出错🙏
      */
     @PostMapping("/quit")
     public ResponseEntity<Result<String>> quitTeam(
-            @RequestParam Long teamId,
-            @CurrentUser Long userId) {
-        Result<String> result = teamMemberService.removeTeamMember(teamId, userId);
+            @CurrentUser Long requesterId) {
+        Result<String> result = teamMemberService.quitTeam(requesterId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.CREATED).body(result)
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
@@ -110,7 +107,7 @@ public class TeamController {
     public ResponseEntity<Result<Team>> createTeam(
             @RequestBody TeamDTO teamDTO,
             @CurrentUser Long requesterId) {
-        Result<Team> result = teamService.createTeam(teamDTO);
+        Result<Team> result = teamService.createTeam(teamDTO, requesterId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.CREATED).body(result)
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
@@ -129,13 +126,23 @@ public class TeamController {
     public ResponseEntity<Result<Team>> modifyTeam(
             @RequestBody TeamDTO teamDTO,
             @CurrentUser Long requesterId) {
-        Result<Team> result = teamService.modifyTeam(teamDTO);
+        Result<Team> result = teamService.modifyTeam(teamDTO, requesterId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.ok(result)
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
-    /// TODO：可以考虑是否是用软删除的方式
+    @PostMapping("/transfer")
+    public ResponseEntity<Result<Team>> transferTeam(
+            @RequestParam Long newOwnerId,
+            @CurrentUser Long requesterId
+    ){
+        Result<Team> result = teamService.transferTeamOwnership(newOwnerId, requesterId);
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.ok(result)
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+    }
+
     /**
      * 删除一个Team<br/>
      * 请求地址: /user/modify<br/>

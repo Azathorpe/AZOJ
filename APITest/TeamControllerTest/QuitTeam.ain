@@ -1,12 +1,12 @@
 [Host]
-http://localhost:8080/user/21
+http://localhost:8080/team/quit
 
 [Headers]
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMiIsInVzZXJuYW1lIjoiSldUZXIiLCJpYXQiOjE3ODk5ODkxNjgsImV4cCI6MTc5MDA3NTU2OH0.DpxCq726o2rmtpmdnb9SRkjknnjyItKC7YU1UDBZ05c
 
 [Method]
-GET
+POST
 
 [Backend]
 curl

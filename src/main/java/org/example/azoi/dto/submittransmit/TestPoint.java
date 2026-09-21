@@ -1,5 +1,6 @@
 package org.example.azoi.dto.submittransmit;
 
+import org.example.azoi.controller.problem.SubmitController;
 import org.example.azoi.model.Submission;
 
 public class TestPoint {
@@ -18,7 +19,9 @@ public class TestPoint {
     @Override
     public String toString() {
         String stat = Submission.parseStatus(status);
-        return "This Point is: " + stat + " Reason: " + judgeLog;
+        if (this.status == Submission.STATUS_AC)
+            return stat;
+        return stat + " Reason: " + judgeLog;
     }
 
     public byte getStatus() {

@@ -3,17 +3,16 @@ http://localhost:8080/team/create
 
 [Headers]
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMCIsInVzZXJuYW1lIjoiSldUZXIiLCJpYXQiOjE3ODk5NzYwNzMsImV4cCI6MTc5MDA2MjQ3M30.Qy8syqTd962KP0U78cGyH4AVxJ2zr7Cx8QTT0bvzucI
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMiIsInVzZXJuYW1lIjoiSldUZXIiLCJpYXQiOjE3ODk5ODkxNjgsImV4cCI6MTc5MDA3NTU2OH0.DpxCq726o2rmtpmdnb9SRkjknnjyItKC7YU1UDBZ05c
 
 [Method]
 POST
 
 [body]
 {
-"name": "AWT",
-"description": "awt",
-"type": 0,
-"ownerId": 30
+"name": "ACMer",
+"description": "ACM",
+"type": 0
 }
 
 [Backend]

@@ -6,13 +6,13 @@ import org.example.azoi.model.team_model.TeamMember;
 import org.example.azoi.model.team_model.TeamMemberId;
 import org.example.azoi.model.user_model.User;
 import org.example.azoi.service.TeamMemberService;
+import org.example.azoi.utils.exception.BusinessException;
 import org.example.azoi.utils.repository.TeamMemberRepository;
 import org.example.azoi.utils.repository.TeamRepository;
 import org.example.azoi.utils.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -51,36 +51,30 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         //我们要判断这个user是否在这个团队
         Result<Team> team = getUserTeam(userId);
         if (team.getCode() == Result.FAIL)
-            return new Result<>(null, Result.FAIL, "You are not join any team");
+            return new Result<>(null, Result.FAIL, "你并没有加入任何一个团队");
 
         if(!Objects.equals(team.getObj().getId(), teamId))
-            return new Result<>(null, Result.FAIL, "You are not belong this team");
+            return new Result<>(null, Result.FAIL, "你不属于这个团队");
+
+        //我们还要判断user是不是团长
+        if (Objects.equals(team.getObj().getOwnerId(), userId))
+            return new Result<>(null, Result.FAIL, "你是团长，请先转移或者直接解散团队");
 
         teamMemberRepository.delete(new TeamMember(teamId, userId));
         return new Result<>(null, Result.SUCCESS, "Member removed successfully");
     }
 
     @Override
-    public Result<String> removeAllTeamMember(Long teamId) {
-        teamMemberRepository.removeTeamMembersById_TeamId(teamId);
-        return new Result<>(null, Result.SUCCESS, "ok");
-    }
-
-    @Override
-    public Result<List<TeamMember>> getTeamMembers(Long teamId) {
-        List<TeamMember> res = teamMemberRepository.getAllById_TeamId(teamId);
-        return new Result<>(res, Result.SUCCESS, "ok");
-    }
-
-    @Override
-    public Result<Boolean> isTeamMember(Long userId, Long teamId) {
-        Optional<TeamMember> teamMember = teamMemberRepository.getTeamMemberById_UserId(userId);
-        if(teamMember.isEmpty())
-            return new Result<>(Boolean.FALSE, Result.FAIL, "can't find relationship, report to admin");
-
-        if (teamMember.get().getId().getTeamId().equals(teamId))
-            return new Result<>(Boolean.TRUE, Result.SUCCESS, "ok");
-        return new Result<>(Boolean.FALSE, Result.SUCCESS, "team member not found");
+    @Transactional
+    public Result<String> quitTeam(Long requesterId) {
+        //查找用户
+        Optional<User> user = userRepository.findById(requesterId);
+        user.orElseThrow(() -> new BusinessException("未找到用户"));
+        //查找用户所在的Team
+        Optional<TeamMember> teamMember = teamMemberRepository.findById_UserId(requesterId);
+        teamMember.orElseThrow(() -> new BusinessException("您未加入团队"));
+        //删除
+        return removeTeamMember(teamMember.get().getId().getTeamId(), requesterId);
     }
 
     @Override
@@ -90,8 +84,8 @@ public class TeamMemberServiceImpl implements TeamMemberService {
         if(teamMemberByIdUserId.isEmpty())
             return new Result<>(null, Result.FAIL, "can't find your team, please report to admin.");
 
-        Optional<Team> team = teamRepository.getTeamById(teamMemberByIdUserId.get().getId().getTeamId());
-
-        return team.map(value -> new Result<>(value, Result.SUCCESS, "ok")).orElseGet(() -> new Result<>(null, Result.FAIL, "can't find team"));
+        return teamRepository.getTeamById(teamMemberByIdUserId.get().getId().getTeamId())
+                .map(value -> new Result<>(value, Result.SUCCESS, "ok"))
+                .orElseGet(() -> new Result<>(null, Result.FAIL, "找不到团队"));
     }
 }

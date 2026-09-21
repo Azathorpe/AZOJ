@@ -40,6 +40,18 @@ public class Team {
         this.createdAt = createdAt;
     }
 
+    @Override
+    public String toString() {
+        return "Team{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", ownerId=" + ownerId +
+                ", type=" + type +
+                ", createdAt=" + createdAt +
+                '}';
+    }
+
     @PrePersist
     public void onCreated(){
         this.createdAt = Instant.now();

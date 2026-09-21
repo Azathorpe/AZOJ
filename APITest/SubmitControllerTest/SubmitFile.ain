@@ -1,22 +1,26 @@
 curl -X POST http://localhost:8080/problem/submitanswer \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyMSIsInVzZXJuYW1lIjoiQXphemVsIiwiaWF0IjoxNzg5OTk0NDk0LCJleHAiOjE3OTAwODA4OTR9.XvDItUeE_AiXUbTB3odqtXbVyQuy7e4oHQXrzUSHwtY' \
   -F "userId=21" \
-  -F "problemId=2" \
+  -F "problemId=5" \
   -F "language=c" \
   -F "file=@/home/azathorpe/Projects/AZOI/APITest/SubmitControllerTest/answer.c"
 
   curl -X POST http://localhost:8080/problem/submitanswer \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyMSIsInVzZXJuYW1lIjoiQXphemVsIiwiaWF0IjoxNzg5OTk0NDk0LCJleHAiOjE3OTAwODA4OTR9.XvDItUeE_AiXUbTB3odqtXbVyQuy7e4oHQXrzUSHwtY' \
     -F "userId=21" \
-    -F "problemId=2" \
+    -F "problemId=5" \
     -F "language=cpp" \
     -F "file=@/home/azathorpe/Projects/AZOI/APITest/SubmitControllerTest/answer.cpp"
 
     curl -X POST http://localhost:8080/problem/submitanswer \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyMSIsInVzZXJuYW1lIjoiQXphemVsIiwiaWF0IjoxNzg5OTk0NDk0LCJleHAiOjE3OTAwODA4OTR9.XvDItUeE_AiXUbTB3odqtXbVyQuy7e4oHQXrzUSHwtY' \
       -F "userId=21" \
       -F "problemId=2" \
       -F "language=java" \
       -F "file=@/home/azathorpe/Projects/AZOI/APITest/SubmitControllerTest/answer.java"
 
       curl -X POST http://localhost:8080/problem/submitanswer \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyMSIsInVzZXJuYW1lIjoiQXphemVsIiwiaWF0IjoxNzg5OTk0NDk0LCJleHAiOjE3OTAwODA4OTR9.XvDItUeE_AiXUbTB3odqtXbVyQuy7e4oHQXrzUSHwtY' \
         -F "userId=21" \
         -F "problemId=2" \
         -F "language=python" \

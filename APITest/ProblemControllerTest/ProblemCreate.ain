@@ -1,19 +1,20 @@
 [Host]
 http://localhost:8080/problem/create
 
+[Headers]
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyMSIsInVzZXJuYW1lIjoiQXphemVsIiwiaWF0IjoxNzg5OTk0NDk0LCJleHAiOjE3OTAwODA4OTR9.XvDItUeE_AiXUbTB3odqtXbVyQuy7e4oHQXrzUSHwtY
+
 [Method]
 POST
 
-[Headers]
-Content-Type: application/json
-
 [Body]
 {
-    "title": "A+B Problem",
-    "description": "输入两个整数 a 和 b，输出它们的和。",
-    "inputFormat": "一行两个整数 a 和 b，用空格分隔。",
-    "outputFormat": "一个整数，表示 a + b 的值。",
-    "hint": "注意数据范围，a 和 b 可能为负数。",
+    "title": "二分查找中间值",
+    "description": "给定一个长度为 n 的**有序**整数数组 a，下标从 1 开始。请找到数组的中间位置，并输出该位置上的数。\n\n中间位置的定义：\n- 如果 n 是奇数，中间位置是 (n + 1) / 2（向下取整），即正中间那个数。\n- 如果 n 是偶数，中间位置是 n / 2，即偏左的那个数。\n\n例如：\n- n = 5，数组 [1, 2, 3, 4, 5]，中间位置是 3，输出 3。\n- n = 4，数组 [1, 2, 3, 4]，中间位置是 2，输出 2。",
+    "inputFormat": "第一行一个整数 n（1 ≤ n ≤ 1000），表示数组长度。\n第二行 n 个整数，表示有序数组 a（-10000 ≤ a[i] ≤ 10000）。",
+    "outputFormat": "一行一个整数，表示数组中间位置上的数。",
+    "hint": "中间位置可以用 mid = (1 + n) / 2 计算（整数除法），对应数组下标从 1 开始。",
     "difficulty": 0,
     "timeLimit": 1000,
     "memoryLimit": 256,
@@ -23,15 +24,15 @@ Content-Type: application/json
     "createdBy": 1,
     "samples": [
         {
-            "input": "1 2",
+            "input": "5\n1 2 3 4 5",
             "output": "3",
-            "explanation": "1 + 2 = 3",
+            "explanation": "n = 5，中间位置是 3，对应数字 3。",
             "sortOrder": 0
         },
         {
-            "input": "-1 5",
-            "output": "4",
-            "explanation": "-1 + 5 = 4",
+            "input": "4\n1 2 3 4",
+            "output": "2",
+            "explanation": "n = 4，中间位置是 2，对应数字 2。",
             "sortOrder": 1
         }
     ],

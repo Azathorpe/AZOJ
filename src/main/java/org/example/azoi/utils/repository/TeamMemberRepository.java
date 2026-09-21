@@ -13,4 +13,12 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, TeamMemb
     Optional<TeamMember> getTeamMemberById_UserId(Long idUserId);
 
     void removeTeamMembersById_TeamId(Long idTeamId);
+
+    Optional<TeamMember> findById_UserId(Long idUserId);
+
+    List<TeamMember> findTeamMembersById_TeamId(Long idTeamId);
+
+    void removeAllById_TeamId(Long idTeamId);
+
+    void deleteById_UserId(Long idUserId);
 }

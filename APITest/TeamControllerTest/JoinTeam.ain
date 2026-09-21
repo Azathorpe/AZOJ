@@ -1,14 +1,12 @@
 [Host]
-http://localhost:8080/team/joinTeam
+http://localhost:8080/team/joinTeam?teamId=7
+
+[Headers]
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNiIsInVzZXJuYW1lIjoiRWNobyIsImlhdCI6MTc4OTk5MTM4MywiZXhwIjoxNzkwMDc3NzgzfQ.3hWlNU3lVVGuEhhDmJm7wc4zRjnNNqCiSy7Gn87hcWQ
 
 [Method]
 POST
-
-[body]
-{
-    "teamId" : 4,
-    "userId" : 22
-}
 
 [Backend]
 curl
