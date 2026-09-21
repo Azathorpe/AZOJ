@@ -4,6 +4,7 @@ import org.example.azoi.dto.Result;
 import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.service.UserService;
+import org.example.azoi.utils.anno.CurrentUser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -28,8 +29,10 @@ public class UsersController {
 
     @PostMapping("/register")
     //批量注册用户
-    public ResponseEntity<Result<List<UserInfoVO>>> register(@RequestBody List<UserDTO> users) {
-        Result<List<UserInfoVO>> result = userService.registerUsers(users);
+    public ResponseEntity<Result<List<UserInfoVO>>> register(
+            @RequestBody List<UserDTO> users,
+            @CurrentUser Long requesterId) {
+        Result<List<UserInfoVO>> result = userService.registerUsers(users, requesterId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.CREATED).body(result)
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);

@@ -8,11 +8,14 @@ import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.dto.usertransmit.UserLoginVO;
 import org.example.azoi.model.team_model.Role;
 import org.example.azoi.model.user_model.User;
+import org.example.azoi.model.user_model.UserRole;
+import org.example.azoi.model.user_model.UserRoleId;
 import org.example.azoi.service.RoleService;
 import org.example.azoi.service.UserRoleService;
 import org.example.azoi.service.UserService;
 import org.example.azoi.utils.JwtUtil;
 import org.example.azoi.utils.repository.UserRepository;
+import org.example.azoi.utils.repository.UserRoleRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,15 +33,13 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final RoleService roleService;
-    private final UserRoleService userRoleService;
+    private final UserRoleRepository userRoleRepository;
     private final JwtUtil jwtUtil;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleServiceImpl roleService, UserRoleService userRoleService, JwtUtil jwtUtil) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, UserRoleService userRoleService, UserRoleRepository userRoleRepository, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.roleService = roleService;
-        this.userRoleService = userRoleService;
+        this.userRoleRepository = userRoleRepository;
         this.jwtUtil = jwtUtil;
     }
 
@@ -46,16 +47,18 @@ public class UserServiceImpl implements UserService {
     public Result<User> getUserById(Long id) {
         Optional<User> userById = userRepository.getUserById(id);
         if (userById.isEmpty())
-            return new Result<User>(null, Result.FAIL, "User not found");
+            return new Result<>(null, Result.FAIL, "User not found");
         return new Result<>(userById.get(), Result.SUCCESS, "ok");
     }
 
     @Override
     @Transactional
-    public Result<List<UserInfoVO>> registerUsers(List<UserDTO> user) {
+    public Result<List<UserInfoVO>> registerUsers(List<UserDTO> user, Long requesterId) {
+
         List<UserInfoVO> res = new ArrayList<>();
         for (UserDTO ud : user)
             res.add(registerUser(ud).getObj());
+
         return new Result<>(res, Result.SUCCESS, "ok");
     }
 
@@ -83,18 +86,14 @@ public class UserServiceImpl implements UserService {
         //只有本人和管理员可以删除用户
         if (!Objects.equals(id, requesterId)) {
             //如果不是本人 检查是不是管理员
-            Result<Role> requesterRole = userRoleService.getUserRoles(requesterId);
-            if (requesterRole.getCode() == Result.FAIL)
-                return new Result<>(null, Result.FAIL, "(在删除用户时)" + requesterRole.getMsg());
-            if (!Objects.equals(requesterRole.getObj().getName(), Role.ROLE_ADMIN))
-                return new Result<>(null, Result.FAIL, "您没有权限");
-            else
-                return new Result<>(null, Result.FAIL, "非本人或管理员不能删除用户: id != requesterId");
+            Result<Void> result = checkerAdmin(requesterId);
+            if(result.getCode() == Result.FAIL)
+                return new Result<>(null, Result.FAIL, result.getMsg());
         }
 
         userRepository.deleteById(id);
         //在删除用户的时候，也要把他和Role的关系删除掉
-        userRoleService.removeUserRole(id);
+        userRoleRepository.deleteById_UserId(id);
         return new Result<>(null, Result.SUCCESS, "User deleted");
     }
 
@@ -135,7 +134,14 @@ public class UserServiceImpl implements UserService {
         User save = userRepository.save(user);
 
         //注册了User之后，也同样需要把Role注册一下，默认先注册成普通用户 也就是id为1的普通用户
-        userRoleService.addUserRole(user.getId(), 1L);
+        userRoleRepository.save(
+                new UserRole(
+                        new UserRoleId(
+                                user.getId(),
+                                Role.ROLE_NORMAL_id
+                        )
+                )
+        );
 
         return new Result<>(new UserInfoVO(save), Result.SUCCESS, "success");
     }
@@ -170,5 +176,21 @@ public class UserServiceImpl implements UserService {
             ip = ip.split(",")[0].trim();
         }
         return ip;
+    }
+
+    /**
+     * 检查一个角色是否是admin
+     * @param requesterId 请求者Id
+     * @return 实际上Result没有内容，直接查看code
+     */
+    private Result<Void> checkerAdmin(Long requesterId) {
+        //只有管理员才能能添加新的角色
+        Optional<UserRole> requester = userRoleRepository.findById_UserId((requesterId));
+        if (requester.isEmpty())
+            return new Result<>(null, Result.FAIL, "未找到您的信息: requester is empty");
+        if (!requester.get().getRole().getName().equals(Role.ROLE_ADMIN)) {
+            return new Result<>(null, Result.FAIL, "您不是管理员");
+        }
+        return new Result<>(null, Result.SUCCESS, "ok");
     }
 }

@@ -8,6 +8,8 @@ public class Role {
 
     public static final String ROLE_ADMIN = "admin";
     public static final String ROLE_NORMAL = "normal";
+    public static final Long ROLE_NORMAL_id = 1L;
+    public static final Long ROLE_ADMIN_id = 2L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

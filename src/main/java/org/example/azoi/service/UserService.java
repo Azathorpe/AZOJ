@@ -19,7 +19,7 @@ public interface UserService {
      */
     Result<User> getUserById(Long id);
 
-    Result<List<UserInfoVO>> registerUsers(List<UserDTO> user);
+    Result<List<UserInfoVO>> registerUsers(List<UserDTO> user, Long requesterId);
 
     Result<UserInfoVO> registerUser(UserDTO user);
 
