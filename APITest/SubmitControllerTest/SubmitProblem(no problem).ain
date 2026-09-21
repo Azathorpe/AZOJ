@@ -1,0 +1,6 @@
+ain吞#
+用curl吧
+
+curl -X POST http://localhost:8080/problem/submitcode \
+  -H "Content-Type: application/json" \
+  -d @/home/azathorpe/Projects/AZOI/APITest/SubmitControllerTest/submit_no.json

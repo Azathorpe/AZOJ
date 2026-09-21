@@ -1,0 +1,6 @@
+{
+    "userId": 21,
+    "problemId": 2,
+    "language": "python",
+    "code": "a, b = map(int, input().split())\nprint(a + b)"
+}
