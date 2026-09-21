@@ -1,5 +1,10 @@
 package org.example.azoi.dto;
 
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
 /**
  * code : -1 FAIL
  *        1  SUCCESS

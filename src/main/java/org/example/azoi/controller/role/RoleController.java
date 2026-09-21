@@ -3,6 +3,7 @@ package org.example.azoi.controller.role;
 import org.example.azoi.dto.Result;
 import org.example.azoi.model.team_model.Role;
 import org.example.azoi.service.RoleService;
+import org.example.azoi.utils.anno.CurrentUser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,8 @@ public class RoleController {
     }
 
     @GetMapping("/get")
-    public ResponseEntity<Result<List<Role>>> getRoles() {
+    public ResponseEntity<Result<List<Role>>> getRoles(
+            @CurrentUser Long userId) {
         Result<List<Role>> result = roleService.getRoles();
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.ok(result)
@@ -31,16 +33,20 @@ public class RoleController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<Result<Role>> addRole(@RequestBody Role role) {
-        Result<Role> result = roleService.addRole(role);
+    public ResponseEntity<Result<Role>> addRole(
+            @RequestBody Role role,
+            @CurrentUser Long requesterId) {
+        Result<Role> result = roleService.addRole(role, requesterId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.CREATED).body(result)
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
     @PostMapping("/update")
-    public ResponseEntity<Result<Role>> updateRole(@RequestBody Role role) {
-        Result<Role> result = roleService.updateRole(role);
+    public ResponseEntity<Result<Role>> updateRole(
+            @RequestBody Role role,
+            @CurrentUser Long requesterId) {
+        Result<Role> result = roleService.updateRole(role, requesterId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.ok(result)
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
@@ -49,8 +55,10 @@ public class RoleController {
     ///TODO：可以考虑是否是用软删除的方式
     ///fixme: 是否要统一风格 使用parma的形式传参
     @DeleteMapping("/delete")
-    public ResponseEntity<Result<String>> deleteRole(@RequestBody Role role) {
-        Result<String> result = roleService.deleteRole(role.getId());
+    public ResponseEntity<Result<Role>> deleteRole(
+            @RequestBody Role role,
+            @CurrentUser Long requesterId) {
+        Result<Role> result = roleService.deleteRole(role.getId(), requesterId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.ok(result)
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
