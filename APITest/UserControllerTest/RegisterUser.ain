@@ -6,9 +6,9 @@ POST
 
 [Body]
 {
-    "username" : "SandBox",
-    "password" : "sandbox",
-    "email" : "box@linux.com"
+    "username" : "JWTer",
+    "password" : "JWT",
+    "email" : "box@Az.com"
 }
 
 [Backend]

@@ -12,9 +12,9 @@ public interface TagService {
 
     Result<Void> addTag(TagDTO tagDTO);
 
-    Result<Void> addTags(List<TagDTO> tagDTOs);
+    Result<Void> addTags(List<TagDTO> tagDTOs, Long requesterId);
 
-    Result<Void> deleteTag(Long tagId);
+    Result<Void> deleteTag(Long tagId, Long requesterId);
 
-    Result<Void> modifyTag(Tag tag);
+    Result<Void> modifyTag(Tag tag, Long requesterId);
 }

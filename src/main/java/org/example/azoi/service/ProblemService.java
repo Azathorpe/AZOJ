@@ -15,11 +15,11 @@ public interface ProblemService {
 
     Result<ProblemInfoVO> getProblemById(Long problemId);
 
-    Result<ProblemInfoVO> createProblem(ProblemCreateDTO problemCreateDTO);
+    Result<ProblemInfoVO> createProblem(ProblemCreateDTO problemCreateDTO, Long requesterId);
 
-    Result<List<ProblemFileVO>> createProblemFile(Long problemId , MultipartFile[] files, Byte[] fileTypes);
+    Result<List<ProblemFileVO>> createProblemFile(Long problemId , MultipartFile[] files, Byte[] fileTypes, Long requesterId);
 
-    Result<Void> removeProblem(Long problemId);
+    Result<Void> removeProblem(Long problemId, Long requesterId);
 
-    Result<Void> deleteProblem(Long problemId);
+    Result<Void> deleteProblem(Long problemId, Long requesterId);
 }

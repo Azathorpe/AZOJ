@@ -9,6 +9,19 @@ public class UserRole {
     @EmbeddedId
     private UserRoleId id;
 
+    public UserRole() {
+    }
+
+    public UserRole(UserRoleId id) {
+        this.id = id;
+    }
+
+    public UserRole(UserRoleId id, User user, Role role) {
+        this.id = id;
+        this.user = user;
+        this.role = role;
+    }
+
     public UserRoleId getId() {
         return id;
     }

@@ -2,7 +2,6 @@ package org.example.azoi.service.impl;
 
 import org.example.azoi.dto.Result;
 import org.example.azoi.dto.teamtransmit.TeamDTO;
-import org.example.azoi.dto.teamtransmit.TeamUserIDDTO;
 import org.example.azoi.dto.teamtransmit.TeamVO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.dto.usertransmit.UserSimpleInfoVO;
@@ -76,7 +75,7 @@ public class TeamServiceImpl implements TeamService {
         Team savedTeam = teamRepository.save(team);
 
         //将创建者添加为团队成员
-        teamMemberService.addTeamMember(new TeamUserIDDTO(savedTeam.getId(), savedTeam.getOwnerId()));
+        teamMemberService.addTeamMember(savedTeam.getId(), savedTeam.getOwnerId());
 
         return new Result<>(savedTeam, Result.SUCCESS, "Team created successfully");
     }
@@ -135,9 +134,7 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @Transactional
-    public Result<Team> removeTeam(TeamUserIDDTO teamUserIDDTO) {
-        Long userId = teamUserIDDTO.getUserId();
-        Long teamId = teamUserIDDTO.getTeamId();
+    public Result<Team> removeTeam(Long teamId, Long userId) {
         Result<Team> res = isUserOwnerOfTeam(userId, teamId);
         if (res.getCode() == Result.FAIL)
             return res;
@@ -147,7 +144,7 @@ public class TeamServiceImpl implements TeamService {
         teamRepository.delete(team);
 
         //删掉所有成员的数据
-        teamMemberService.removeAllTeamMember(teamUserIDDTO.getTeamId());
+        teamMemberService.removeAllTeamMember(teamId);
 
         return new Result<>(null, Result.SUCCESS, "Team removed successfully");
     }

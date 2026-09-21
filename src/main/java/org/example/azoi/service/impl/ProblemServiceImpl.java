@@ -12,7 +12,9 @@ import org.example.azoi.dto.problemtransmit.othertransmit.ProblemSampleDTO;
 import org.example.azoi.dto.problemtransmit.othertransmit.ProblemTagDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.model.problem_model.*;
+import org.example.azoi.model.team_model.Role;
 import org.example.azoi.model.user_model.User;
+import org.example.azoi.model.user_model.UserRole;
 import org.example.azoi.service.ProblemService;
 import org.example.azoi.utils.exception.BusinessException;
 import org.example.azoi.utils.repository.*;
@@ -36,10 +38,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class ProblemServiceImpl implements ProblemService {
@@ -55,14 +54,16 @@ public class ProblemServiceImpl implements ProblemService {
     private final ProblemFileRepository problemFileRepository;
     private final TagRepository tagRepository;
     private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
 
-    public ProblemServiceImpl(ProblemRepository problemRepository, TagRepository tagRepository, ProblemTagRepository problemTagRepository, ProblemSampleRepository problemSampleRepository, ProblemFileRepository problemFileRepository, UserRepository userRepository) {
+    public ProblemServiceImpl(ProblemRepository problemRepository, TagRepository tagRepository, ProblemTagRepository problemTagRepository, ProblemSampleRepository problemSampleRepository, ProblemFileRepository problemFileRepository, UserRepository userRepository, UserRoleRepository userRoleRepository) {
         this.problemRepository = problemRepository;
         this.tagRepository = tagRepository;
         this.problemTagRepository = problemTagRepository;
         this.problemSampleRepository = problemSampleRepository;
         this.problemFileRepository = problemFileRepository;
         this.userRepository = userRepository;
+        this.userRoleRepository = userRoleRepository;
     }
 
     @Override
@@ -128,7 +129,11 @@ public class ProblemServiceImpl implements ProblemService {
 
     @Override
     @Transactional
-    public Result<ProblemInfoVO> createProblem(ProblemCreateDTO problemCreateDTO) {
+    public Result<ProblemInfoVO> createProblem(ProblemCreateDTO problemCreateDTO, Long requesterId) {
+        if (problemCreateDTO.getCreatedBy() == -1)
+            problemCreateDTO.setCreatedBy(requesterId);
+
+
         Problem problem = problemRepository.save(new Problem(problemCreateDTO));
         if (problem.getId() == null)
             throw new BusinessException("Problem has not been created...");
@@ -178,11 +183,21 @@ public class ProblemServiceImpl implements ProblemService {
 
     @Override
     @Transactional
-    public Result<List<ProblemFileVO>> createProblemFile(Long problemId, MultipartFile[] files, Byte[] fileTypes) {
+    public Result<List<ProblemFileVO>> createProblemFile(
+            Long problemId,
+            MultipartFile[] files,
+            Byte[] fileTypes,
+            Long requesterId
+    ) {
         //检查问题文件是否存在
         Optional<Problem> problem = problemRepository.findById(problemId);
         if (problem.isEmpty() || problem.get().getDeletedAt() != null)
-            return new Result<>(null, Result.FAIL, "can't find problem file");
+            return new Result<>(null, Result.FAIL, "找不到问题记录: Can't find problem");
+
+        //校验上传者是否是管理员或者作者
+        Result<Role> checkerAdminOrCreator = checkerAdminOrCreator(problem.get(), requesterId);
+        if(checkerAdminOrCreator.getCode() == Result.FAIL)
+            return new Result<>(null, Result.FAIL, checkerAdminOrCreator.getMsg());
 
         List<ProblemFileVO> pfs = new ArrayList<>();
 
@@ -194,7 +209,7 @@ public class ProblemServiceImpl implements ProblemService {
 
         for (int i = 0; i < files.length; i++) {
             Result<ProblemFile> result = uploadFile(fileTypes[i], files[i], problem.get(), index[fileTypes[i]]++);
-            pfs.add(new ProblemFileVO(result.getObj().getFilename(), result.getObj().getFileType(),result.getCode(), result.getMsg()));
+            pfs.add(new ProblemFileVO(result.getObj().getFilename(), result.getObj().getFileType(), result.getCode(), result.getMsg()));
         }
 
         return new Result<>(pfs, Result.SUCCESS, "please check pfs details");
@@ -202,16 +217,27 @@ public class ProblemServiceImpl implements ProblemService {
 
     @Override
     @Transactional
-    public Result<Void> removeProblem(Long problemId) {
-        problemRepository.findById(problemId).ifPresent(problem -> problem.setDeletedAt(Instant.now()));
+    public Result<Void> removeProblem(Long problemId, Long requesterId) {
+        Problem problem = problemRepository.findById(problemId)
+                .orElseThrow(() -> new BusinessException("题目不存在"));
+
+        Result<Role> checkerAdminOrCreator = checkerAdminOrCreator(problem, requesterId);
+        if(checkerAdminOrCreator.getCode() == Result.FAIL)
+            return new Result<>(null, Result.FAIL, checkerAdminOrCreator.getMsg());
+
+        problemRepository.findById(problemId).ifPresent(pro -> pro.setDeletedAt(Instant.now()));
         return new Result<>(null, Result.SUCCESS, "ok");
     }
 
     @Override
     @Transactional
-    public Result<Void> deleteProblem(Long problemId) {
+    public Result<Void> deleteProblem(Long problemId, Long requesterId) {
         Problem problem = problemRepository.findById(problemId)
                 .orElseThrow(() -> new BusinessException("题目不存在"));
+
+        Result<Role> checkerAdminOrCreator = checkerAdminOrCreator(problem, requesterId);
+        if(checkerAdminOrCreator.getCode() == Result.FAIL)
+            return new Result<>(null, Result.FAIL, checkerAdminOrCreator.getMsg());
 
         StringBuilder msg = new StringBuilder();
 
@@ -244,13 +270,13 @@ public class ProblemServiceImpl implements ProblemService {
         String fileName = "";
         try {
             fileName = testPoint + "." + ProblemFile.parseType(fileType);
-        }catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             return new Result<>(null, Result.FAIL, "非法 fileType: " + fileType);
         }
         if (fileName.contains("/") || fileName.contains(".."))
             return new Result<>(null, Result.FAIL, "非法的文件名");
 
-        if(file == null || file.isEmpty())
+        if (file == null || file.isEmpty())
             return new Result<>(null, Result.FAIL, "文件为空");
 
         //相对路径
@@ -293,6 +319,25 @@ public class ProblemServiceImpl implements ProblemService {
 //            return new Result<>(null, Result.FAIL, "File delete failed");
         }
         problemFileRepository.delete(problemFile);
+        return new Result<>(null, Result.SUCCESS, "ok");
+    }
+
+    /**
+     * 检查一个角色是否是admin或creator
+     * @param problem 问题
+     * @param requesterId 请求者Id
+     * @return 实际上Result没有内容，直接查看code
+     */
+    private Result<Role> checkerAdminOrCreator(Problem problem, Long requesterId) {
+        //只有管理员才能能添加新的角色
+        Optional<UserRole> requester = userRoleRepository.findById_UserId(requesterId);
+        if (requester.isEmpty())
+            return new Result<>(null, Result.FAIL, "未找到您的信息: requester is empty");
+
+        if (!Objects.equals(requesterId, problem.getCreatedBy()))
+            if (!requester.get().getRole().getName().equals(Role.ROLE_ADMIN))
+                return new Result<>(null, Result.FAIL, "您不是管理员或者作者");
+
         return new Result<>(null, Result.SUCCESS, "ok");
     }
 }

@@ -1,5 +1,6 @@
 package org.example.azoi.utils.repository;
 
+import org.example.azoi.model.team_model.Role;
 import org.example.azoi.model.user_model.User;
 import org.example.azoi.model.user_model.UserRole;
 import org.example.azoi.model.user_model.UserRoleId;
@@ -32,4 +33,8 @@ public interface UserRoleRepository extends JpaRepository<UserRole, UserRoleId> 
     List<User> findUsersByRoleId(@Param("roleId") Long roleId);
 
     void deleteById_UserId(Long idUserId);
+
+    Optional<UserRole> findById_UserId(Long idUserId);
+
+    Optional<UserRole> getUserRolesById_UserId(Long idUserId);
 }
