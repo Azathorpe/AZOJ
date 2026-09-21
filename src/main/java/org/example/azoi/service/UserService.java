@@ -55,7 +55,7 @@ public interface UserService {
      * @param id
      * @return
      */
-    Result<String> deleteUser(Long id);
+    Result<String> deleteUser(Long id, Long requesterId);
 
     Result<UserLoginVO> loginUser(UserDTO user, HttpServletRequest HR);
 }

@@ -1,6 +1,10 @@
 [Host]
 http://localhost:8080/user/21
 
+[Headers]
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMCIsInVzZXJuYW1lIjoiSldUZXIiLCJpYXQiOjE3ODk5NzYwNzMsImV4cCI6MTc5MDA2MjQ3M30.Qy8syqTd962KP0U78cGyH4AVxJ2zr7Cx8QTT0bvzucI
+
 [Method]
 GET
 

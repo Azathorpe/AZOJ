@@ -6,6 +6,9 @@ import jakarta.persistence.*;
 @Table(name = "roles", schema = "azoi")
 public class Role {
 
+    public static final String ROLE_ADMIN = "admin";
+    public static final String ROLE_NORMAL = "normal";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)

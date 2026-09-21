@@ -31,6 +31,7 @@ public class TeamController {
      * 获取一个Team的信息<br/>
      * 请求地址: /user/{teamId}<br/>
      * 请求方法: /user/{teamId}<br/>
+     *
      * @param teamId 团队的id
      * @return Team的信息{@link TeamVO}
      */
@@ -47,6 +48,7 @@ public class TeamController {
      * 获取所有的Team<br/>
      * 请求地址: /user/getTeams<br/>
      * 请求方法: /user/getTeams<br/>
+     *
      * @return 所有的Team {@link List} of {@link TeamVO}
      */
     @GetMapping("/getTeams")
@@ -61,6 +63,7 @@ public class TeamController {
      * 加入一个Team<br/>
      * 请求地址: /user/joinTeam<br/>
      * 请求方法: /user/joinTeam?teamId=x<br/>
+     *
      * @param teamId 团队Id
      * @param userId 用户Id
      * @return 我也不知道是啥，祈祷不会出错🙏
@@ -79,6 +82,7 @@ public class TeamController {
      * 退出一个Team<br/>
      * 请求地址: /user/quit<br/>
      * 请求方法: /user/quit?teamId=x<br/>
+     *
      * @param teamId 团队Id
      * @param userId 用户Id
      * @return 我也不知道是啥，祈祷不会出错🙏
@@ -97,7 +101,8 @@ public class TeamController {
      * 创建一个Team<br/>
      * 请求地址: /user/create<br/>
      * 请求方法: /user/create<br/>
-     * @param teamDTO teamDTO{@link TeamDTO}
+     *
+     * @param teamDTO     teamDTO{@link TeamDTO}
      * @param requesterId 请求者id
      * @return Team{@link Team}
      */
@@ -115,7 +120,8 @@ public class TeamController {
      * 修改一个Team<br/>
      * 请求地址: /user/modify<br/>
      * 请求方法: /user/modify<br/>
-     * @param teamDTO {@link TeamDTO}
+     *
+     * @param teamDTO     {@link TeamDTO}
      * @param requesterId 请求者id
      * @return Team{@link Team}
      */
@@ -134,7 +140,8 @@ public class TeamController {
      * 删除一个Team<br/>
      * 请求地址: /user/modify<br/>
      * 请求方法: /user/modify<br/>
-     * @param teamId 团队id
+     *
+     * @param teamId      团队id
      * @param requesterId 请求者id
      * @return Team{@link Team}
      */

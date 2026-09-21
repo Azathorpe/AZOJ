@@ -49,7 +49,7 @@ public class UserController {
             @RequestParam Long userId,
             @CurrentUser Long requesterId) {
         if (!Objects.equals(userId, requesterId))
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Result<>(null, Result.FAIL, "请本人登陆再获取详细信息: userId != requesterId"));
         Result<UserCurrentVO> result = userService.getCurrentUser(userId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.ok(result)
@@ -133,8 +133,6 @@ public class UserController {
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
-    /// TODO：可以考虑是否是用软删除的方式
-    /// FIXME: 在用户删除时 也应该校验他是否在某个团队里面 如果是 那么请先转移团长或者解散
     /**
      * 删除一个用户<br/>
      * 请求地址: /user/delete<br/>
@@ -148,7 +146,7 @@ public class UserController {
     public ResponseEntity<Result<String>> removeUser(
             @RequestParam Long userId,
             @CurrentUser Long requesterId) {
-        Result<String> result = userService.deleteUser(userId);
+        Result<String> result = userService.deleteUser(userId, requesterId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.ok(result)
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);

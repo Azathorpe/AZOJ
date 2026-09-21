@@ -6,6 +6,7 @@ import org.example.azoi.dto.usertransmit.UserCurrentVO;
 import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.dto.usertransmit.UserLoginVO;
+import org.example.azoi.model.team_model.Role;
 import org.example.azoi.model.user_model.User;
 import org.example.azoi.service.RoleService;
 import org.example.azoi.service.UserRoleService;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -77,7 +79,19 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Result<String> deleteUser(Long id) {
+    public Result<String> deleteUser(Long id, Long requesterId) {
+        //只有本人和管理员可以删除用户
+        if (!Objects.equals(id, requesterId)) {
+            //如果不是本人 检查是不是管理员
+            Result<Role> requesterRole = userRoleService.getUserRoles(requesterId);
+            if (requesterRole.getCode() == Result.FAIL)
+                return new Result<>(null, Result.FAIL, "(在删除用户时)" + requesterRole.getMsg());
+            if (!Objects.equals(requesterRole.getObj().getName(), Role.ROLE_ADMIN))
+                return new Result<>(null, Result.FAIL, "您没有权限");
+            else
+                return new Result<>(null, Result.FAIL, "非本人或管理员不能删除用户: id != requesterId");
+        }
+
         userRepository.deleteById(id);
         //在删除用户的时候，也要把他和Role的关系删除掉
         userRoleService.removeUserRole(id);
