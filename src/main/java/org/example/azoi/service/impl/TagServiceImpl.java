@@ -7,8 +7,11 @@ import org.example.azoi.model.problem_model.Tag;
 import org.example.azoi.model.team_model.Role;
 import org.example.azoi.model.user_model.UserRole;
 import org.example.azoi.service.TagService;
+import org.example.azoi.utils.exception.BusinessException;
 import org.example.azoi.utils.repository.TagRepository;
 import org.example.azoi.utils.repository.UserRoleRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +19,7 @@ import java.util.Optional;
 
 @Service
 public class TagServiceImpl implements TagService {
+    private static final Logger log = LoggerFactory.getLogger(TagServiceImpl.class);
     private final TagRepository tagRepository;
     private final UserRoleRepository userRoleRepository;
 
@@ -69,11 +73,12 @@ public class TagServiceImpl implements TagService {
         if(result.getCode() == Result.FAIL)
             return new Result<>(null, Result.SUCCESS, result.getMsg());
 
-        tagRepository.findById(tag.getId())
-                .ifPresent(tg -> {
-                    tg.setName(tag.getName());
-                    tg.setColor(tag.getColor());
-                });
+        Tag saver = tagRepository.findById(tag.getId())
+                .orElseThrow(() -> new BusinessException("未找到Tag"));
+        saver.setName(tag.getName());
+        saver.setColor(tag.getColor());
+        tagRepository.save(saver);
+
         return new Result<>(null, Result.SUCCESS, "ok");
     }
 

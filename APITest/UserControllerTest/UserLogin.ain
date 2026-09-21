@@ -11,8 +11,8 @@ POST
 
 [body]
 {
-    "username" : "Echo",
-    "password" : "echoHelloWorld"
+    "username" : "Azazel",
+    "password" : "123456"
 }
 
 [Backend]
