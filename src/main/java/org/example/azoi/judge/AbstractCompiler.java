@@ -1,5 +1,6 @@
 package org.example.azoi.judge;
 
+import org.example.azoi.dto.Result;
 import org.example.azoi.model.Submission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +46,7 @@ public abstract class AbstractCompiler implements Compiler {
     protected abstract Path getOutputPath(Path source);
 
     @Override
-    public String run(String outputFile, String input) {
+    public Result<String> run(String outputFile, String input) {
         Path inputPath = Paths.get(rootPath, problemDir, input);
         Path programPath = Paths.get(rootPath, outputFile);
         Path ans = programPath.getParent().getParent().resolve(input + ".ans");
@@ -77,8 +78,7 @@ public abstract class AbstractCompiler implements Compiler {
             if (exitCode != 0) {
                 throw new BusinessException("运行时错误，退出码 " + exitCode);
             }
-            return Files.readString(ans);
-
+            return new Result<>(Files.readString(ans), Result.SUCCESS, "ok");
 
         } catch (IOException | InterruptedException e) {
             throw new BusinessException("运行时出错: " + e);

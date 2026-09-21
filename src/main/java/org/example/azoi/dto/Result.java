@@ -22,6 +22,11 @@ public class Result<T> {
         this.msg = msg;
     }
 
+    @Override
+    public String toString() {
+        return "This result is " + (getCode() == SUCCESS ? "SUCCESS" : "FAIL") + "\n Message: " + getMsg() + "\n obj: " + getObj();
+    }
+
     public T getObj() {
         return obj;
     }

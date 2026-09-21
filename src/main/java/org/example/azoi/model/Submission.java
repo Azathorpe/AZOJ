@@ -74,7 +74,7 @@ public class Submission {
     private String code;
 
     @PrePersist
-    public void onCreated(){
+    public void onCreated() {
         createdAt = Instant.now();
     }
 
@@ -101,8 +101,48 @@ public class Submission {
         this.code = code;
     }
 
-    public static String parseStatus(byte status){
-        switch (status){
+    public static byte toStatus(String status) {
+        switch (status) {
+            case "0" -> {
+                return STATUS_PENDING;
+            }
+            case "1" -> {
+                return STATUS_JUDGING;
+            }
+            case "2" -> {
+                return STATUS_AC;
+            }
+            case "3" -> {
+                return STATUS_WA;
+            }
+            case "4" -> {
+                return STATUS_TLE;
+            }
+            case "5" -> {
+                return STATUS_MLE;
+            }
+            case "6" -> {
+                return STATUS_RE;
+            }
+            case "7" -> {
+                return STATUS_CE;
+            }
+            case "8" -> {
+                return STATUS_OLE;
+            }
+            case "9" -> {
+                return STATUS_UKE;
+            }
+            default -> throw new BusinessException("Unexpected value: " + status);
+        }
+    }
+
+    public static String parseStatus(String status) {
+        return parseStatus(Byte.parseByte(status));
+    }
+
+    public static String parseStatus(byte status) {
+        switch (status) {
             case STATUS_PENDING -> {
                 return "PENDING";
             }

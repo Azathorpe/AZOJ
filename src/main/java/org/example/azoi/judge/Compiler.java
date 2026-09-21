@@ -1,5 +1,6 @@
 package org.example.azoi.judge;
 
+import org.example.azoi.dto.Result;
 import org.example.azoi.utils.exception.*;
 
 public interface Compiler {
@@ -20,5 +21,5 @@ public interface Compiler {
      */
     String supportedLanguage();
 
-    String run(String outputFile, String input);
+    Result<String> run(String outputFile, String input);
 }

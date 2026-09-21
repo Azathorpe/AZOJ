@@ -18,7 +18,7 @@ public class TestPoint {
     @Override
     public String toString() {
         String stat = Submission.parseStatus(status);
-        return "This Point is: " + stat + "Reason: " + judgeLog;
+        return "This Point is: " + stat + " Reason: " + judgeLog;
     }
 
     public byte getStatus() {

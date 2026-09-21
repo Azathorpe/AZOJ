@@ -1,6 +1,7 @@
 package org.example.azoi.judge;
 
 import jakarta.persistence.PrePersist;
+import org.example.azoi.dto.Result;
 import org.example.azoi.dto.submittransmit.TestPoint;
 import org.example.azoi.judge.impl.CompilerFactory;
 import org.example.azoi.model.Submission;
@@ -32,6 +33,8 @@ public class JudgeService {
     private String compileDir;
     @Value("${azoi.storage.problem-dir}")
     private String problemDir;
+    @Value("${azoi.storage.submit-dir}")
+    private String submitDir;
 
     private static final Logger log = LoggerFactory.getLogger(JudgeService.class);
 
@@ -112,7 +115,11 @@ public class JudgeService {
                 String input = testList.get(i) + ".in", output = testList.get(i) + ".out";
                 log.info("当前测试文件名: {}, 答案文件名: {}", input, output);
                 //使用流输入读取文件
-                String myAnswer = compiler.run(compiledPath, input);
+                Result<String> out = compiler.run(compiledPath, input);
+                if(out.getCode() == Result.FAIL)
+                    log.info("out is FAIL, Reason: {}", Submission.parseStatus(out.getMsg()));
+                log.info("out: {}", out);
+                String myAnswer = out.getObj();
                 Path standardAnswerPath = Paths.get(rootPath, problemDir).resolve(output);
                 String standardAnswer = Files.readString(standardAnswerPath);
 
@@ -120,10 +127,26 @@ public class JudgeService {
                     tp[i] = new TestPoint(Submission.STATUS_AC, "");
                     pass++;
                 }
-                else
-                    tp[i] = new TestPoint(Submission.STATUS_WA, "not impl");
+                else {
+                    tp[i] = new TestPoint(
+                            Submission.toStatus(out.getMsg()) == Submission.STATUS_JUDGING
+                                    ? Submission.STATUS_WA
+                                    : Submission.toStatus(out.getMsg()),
+                            out.getObj());
+                }
             }
 
+
+            //如果是Java 那么把Java的输入文件改名为${submissionId}.java
+            if(LangParser.toExtension(submission.getLanguage()).equals("java")){
+                Path javaFile = Paths.get(
+                        rootPath,
+                        submitDir,
+                        Long.toString(submission.getUserId()),
+                        Long.toString(submission.getProblemId()));
+                Files.move(javaFile.resolve("Main.java"),
+                        javaFile.resolve(submission.getId() + ".java"));
+            }
 
             // 3. 回写结果
             submission.setStatus(pass != tp.length ? Submission.STATUS_WA : Submission.STATUS_AC);

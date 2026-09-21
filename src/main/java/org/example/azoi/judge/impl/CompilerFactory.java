@@ -1,6 +1,7 @@
 package org.example.azoi.judge.impl;
 
 import org.example.azoi.judge.Compiler;
+import org.example.azoi.utils.LangParser;
 import org.example.azoi.utils.exception.CompileException;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +21,7 @@ public class CompilerFactory {
     }
 
     public Compiler get(String language) {
-        Compiler c = compilerMap.get(language);
+        Compiler c = compilerMap.get(LangParser.toExtension(language));
         if (c == null) {
             throw new CompileException("不支持的语言: " + language);
         }

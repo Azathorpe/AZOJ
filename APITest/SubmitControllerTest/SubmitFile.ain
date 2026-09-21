@@ -1,5 +1,23 @@
 curl -X POST http://localhost:8080/problem/submitanswer \
   -F "userId=21" \
   -F "problemId=2" \
-  -F "language=java" \
+  -F "language=c" \
   -F "file=@/home/azathorpe/Projects/AZOI/APITest/SubmitControllerTest/answer.c"
+
+  curl -X POST http://localhost:8080/problem/submitanswer \
+    -F "userId=21" \
+    -F "problemId=2" \
+    -F "language=cpp" \
+    -F "file=@/home/azathorpe/Projects/AZOI/APITest/SubmitControllerTest/answer.cpp"
+
+    curl -X POST http://localhost:8080/problem/submitanswer \
+      -F "userId=21" \
+      -F "problemId=2" \
+      -F "language=java" \
+      -F "file=@/home/azathorpe/Projects/AZOI/APITest/SubmitControllerTest/answer.java"
+
+      curl -X POST http://localhost:8080/problem/submitanswer \
+        -F "userId=21" \
+        -F "problemId=2" \
+        -F "language=python" \
+        -F "file=@/home/azathorpe/Projects/AZOI/APITest/SubmitControllerTest/answer.py"
