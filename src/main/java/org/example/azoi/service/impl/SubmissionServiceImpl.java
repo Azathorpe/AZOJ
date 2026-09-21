@@ -206,9 +206,16 @@ public class SubmissionServiceImpl implements SubmissionService {
         //文件路径如何拼接呢？
         //root + submit/${userId}/${problemId}/${submissionId}.${filetype}
 
-        Path filePath = Paths.get(
-                Long.toString(sub.getUserId()),
-                Long.toString(sub.getProblemId()));
+        Path filePath;
+        //如果是Java 那就单独创建一个Main.java吧，没办法bro,在评测完之后，再改名成${submissionId}.${filetype}
+        if (LangParser.toExtension(sub.getLanguage()).equals("java"))
+            filePath = Paths.get(
+                    Long.toString(sub.getUserId()),
+                    "Main");
+        else
+            filePath = Paths.get(
+                    Long.toString(sub.getUserId()),
+                    Long.toString(sub.getProblemId()));
         Path folderPath = Paths.get(
                 rootPath,
                 submitPath
