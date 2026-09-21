@@ -10,7 +10,7 @@ public class TeamDTO {
     private String description;
     private Byte type;
 
-    Long ownerId;
+    Long ownerId = -1L;
 
 
     public TeamDTO() {

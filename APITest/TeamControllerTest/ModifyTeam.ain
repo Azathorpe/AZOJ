@@ -1,15 +1,18 @@
 [Host]
 http://localhost:8080/team/modify
 
+[Headers]
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyNiIsInVzZXJuYW1lIjoiRWNobyIsImlhdCI6MTc4OTk5MTM4MywiZXhwIjoxNzkwMDc3NzgzfQ.3hWlNU3lVVGuEhhDmJm7wc4zRjnNNqCiSy7Gn87hcWQ
+
 [Method]
 POST
 
 [body]
 {
-  "name": "今日AC",
-  "description": "AC自动机",
-  "type": 0,
-  "ownerId": 23
+  "name": "JWT yyds",
+  "description": "i like JWT",
+  "type": 0
 }
 
 [Backend]

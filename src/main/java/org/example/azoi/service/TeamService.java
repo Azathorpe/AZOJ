@@ -10,11 +10,11 @@ import java.util.List;
 public interface TeamService {
     Result<TeamVO> getTeam(Long teamId);
 
-    Result<Team> createTeam(TeamDTO team);
+    Result<Team> createTeam(TeamDTO team, Long requesterId);
 
-    Result<Team> modifyTeam(TeamDTO teamDTO);
+    Result<Team> modifyTeam(TeamDTO teamDTO, Long requesterId);
 
-    Result<Team> transferTeamOwnership(Long teamId, Long newOwnerId, Long currentOwnerId);
+    Result<Team> transferTeamOwnership(Long newOwnerId, Long currentOwnerId);
 
     Result<Team> removeTeam(Long teamId, Long userId);
 
