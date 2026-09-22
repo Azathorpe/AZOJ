@@ -10,7 +10,6 @@ import org.example.azoi.model.team_model.Team;
 import org.example.azoi.model.team_model.TeamMember;
 import org.example.azoi.model.team_model.TeamMemberId;
 import org.example.azoi.model.user_model.User;
-import org.example.azoi.model.user_model.UserRole;
 import org.example.azoi.service.TeamService;
 import org.example.azoi.utils.exception.BusinessException;
 import org.example.azoi.utils.repository.*;

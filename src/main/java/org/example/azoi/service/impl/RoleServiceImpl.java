@@ -3,19 +3,16 @@ package org.example.azoi.service.impl;
 import org.example.azoi.dto.Result;
 import org.example.azoi.model.user_model.Role;
 import org.example.azoi.model.user_model.User;
-import org.example.azoi.model.user_model.UserRole;
 import org.example.azoi.service.RoleService;
 import org.example.azoi.service.UserService;
 import org.example.azoi.utils.exception.BusinessException;
 import org.example.azoi.utils.repository.RoleRepository;
 import org.example.azoi.utils.repository.UserRepository;
-import org.example.azoi.utils.repository.UserRoleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class RoleServiceImpl implements RoleService {
@@ -23,7 +20,7 @@ public class RoleServiceImpl implements RoleService {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
 
-    public RoleServiceImpl(RoleRepository roleRepository, UserService userService, UserRepository userRepository, UserRepository userRepository1, UserRoleRepository userRoleRepository) {
+    public RoleServiceImpl(RoleRepository roleRepository, UserService userService, UserRepository userRepository, UserRepository userRepository1) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository1;
     }

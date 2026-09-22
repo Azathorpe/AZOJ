@@ -6,19 +6,16 @@ import org.example.azoi.dto.problemtransmit.othertransmit.TagVO;
 import org.example.azoi.model.problem_model.Tag;
 import org.example.azoi.model.user_model.Role;
 import org.example.azoi.model.user_model.User;
-import org.example.azoi.model.user_model.UserRole;
 import org.example.azoi.service.TagService;
 import org.example.azoi.utils.exception.BusinessException;
 import org.example.azoi.utils.repository.RoleRepository;
 import org.example.azoi.utils.repository.TagRepository;
 import org.example.azoi.utils.repository.UserRepository;
-import org.example.azoi.utils.repository.UserRoleRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TagServiceImpl implements TagService {

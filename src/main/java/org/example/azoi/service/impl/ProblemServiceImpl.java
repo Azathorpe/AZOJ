@@ -11,7 +11,6 @@ import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.model.problem_model.*;
 import org.example.azoi.model.user_model.Role;
 import org.example.azoi.model.user_model.User;
-import org.example.azoi.model.user_model.UserRole;
 import org.example.azoi.service.ProblemService;
 import org.example.azoi.utils.exception.BusinessException;
 import org.example.azoi.utils.repository.*;
@@ -54,7 +53,7 @@ public class ProblemServiceImpl implements ProblemService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
-    public ProblemServiceImpl(ProblemRepository problemRepository, TagRepository tagRepository, ProblemTagRepository problemTagRepository, ProblemSampleRepository problemSampleRepository, ProblemFileRepository problemFileRepository, UserRepository userRepository, RoleRepository roleRepository, UserRoleRepository userRoleRepository) {
+    public ProblemServiceImpl(ProblemRepository problemRepository, TagRepository tagRepository, ProblemTagRepository problemTagRepository, ProblemSampleRepository problemSampleRepository, ProblemFileRepository problemFileRepository, UserRepository userRepository, RoleRepository roleRepository) {
         this.problemRepository = problemRepository;
         this.tagRepository = tagRepository;
         this.problemTagRepository = problemTagRepository;

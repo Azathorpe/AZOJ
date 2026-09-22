@@ -6,17 +6,12 @@ import org.example.azoi.dto.usertransmit.UserCurrentVO;
 import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.dto.usertransmit.UserLoginVO;
-import org.example.azoi.model.user_model.Role;
-import org.example.azoi.service.UserRoleService;
 import org.example.azoi.service.UserService;
-import org.example.azoi.utils.JwtUtil;
 import org.example.azoi.utils.anno.CurrentUser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 /**
  * 用于控制单个user相关的请求
