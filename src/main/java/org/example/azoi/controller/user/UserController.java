@@ -22,17 +22,14 @@ import java.util.List;
  * 用于控制单个user相关的请求
  */
 
-//TODO: 添加更改用户的角色功能
 @RestController
 @RequestMapping("/user")
 public class UserController {
 
     private final UserService userService;
-    private final UserRoleService userRoleService;
 
-    public UserController(UserService userService, UserRoleService userRoleService, JwtUtil jwtUtil) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.userRoleService = userRoleService;
     }
 
     /**
@@ -71,43 +68,43 @@ public class UserController {
                 : ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
     }
 
-    /**
-     * 获取一个用户的角色(一般是admin或者normal， 后面可以把它变成一个称号之类的来用)<br/>
-     * 请求地址: /user/getUserRole<br/>
-     * 请求方法: /user/getUserRole?userId=x<br/>
-     *
-     * @param userId      查询用户的id
+    /*
+      获取一个用户的角色(一般是admin或者normal， 后面可以把它变成一个称号之类的来用)<br/>
+      请求地址: /user/getUserRole<br/>
+      请求方法: /user/getUserRole?userId=x<br/>
+
+      @param userId      查询用户的id
      * @param requesterId 请求者的id
      * @return 角色{@link Role}
      */
-    @GetMapping("/getUserRole")
-    public ResponseEntity<Result<Role>> getUserRole(
-            @RequestParam Long userId,
-            @CurrentUser Long requesterId) {
-        Result<Role> result = userRoleService.getUserRoles(userId);
-        return result.getCode() == Result.SUCCESS
-                ? ResponseEntity.ok(result)
-                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
-    }
+//    @GetMapping("/getUserRole")
+//    public ResponseEntity<Result<Role>> getUserRole(
+//            @RequestParam Long userId,
+//            @CurrentUser Long requesterId) {
+//        Result<Role> result = userRoleService.getUserRoles(userId);
+//        return result.getCode() == Result.SUCCESS
+//                ? ResponseEntity.ok(result)
+//                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+//    }
 
-    /**
-     * 获取带有某种角色的用户
-     * 请求地址: /user/getRoleUser
-     * 请求方法: /user/getRoleUser?roleId=x
-     *
-     * @param roleId      查询角色的id
+    /*
+      获取带有某种角色的用户
+      请求地址: /user/getRoleUser
+      请求方法: /user/getRoleUser?roleId=x
+
+      @param roleId      查询角色的id
      * @param requesterId 请求者的id
      * @return List<UserInfoVO> {@link List} of {@link UserInfoVO}
      */
-    @GetMapping("/getRoleUser")
-    public ResponseEntity<Result<List<UserInfoVO>>> getRoleUser(
-            @RequestParam Long roleId,
-            @CurrentUser Long requesterId) {
-        Result<List<UserInfoVO>> result = userRoleService.getRoleUsers(roleId);
-        return result.getCode() == Result.SUCCESS
-                ? ResponseEntity.ok(result)
-                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
-    }
+//    @GetMapping("/getRoleUser")
+//    public ResponseEntity<Result<List<UserInfoVO>>> getRoleUser(
+//            @RequestParam Long roleId,
+//            @CurrentUser Long requesterId) {
+//        Result<List<UserInfoVO>> result = userRoleService.getRoleUsers(roleId);
+//        return result.getCode() == Result.SUCCESS
+//                ? ResponseEntity.ok(result)
+//                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+//    }
 
     /**
      * 注册用户

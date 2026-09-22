@@ -5,10 +5,13 @@ import org.example.azoi.dto.problemtransmit.othertransmit.TagDTO;
 import org.example.azoi.dto.problemtransmit.othertransmit.TagVO;
 import org.example.azoi.model.problem_model.Tag;
 import org.example.azoi.model.user_model.Role;
+import org.example.azoi.model.user_model.User;
 import org.example.azoi.model.user_model.UserRole;
 import org.example.azoi.service.TagService;
 import org.example.azoi.utils.exception.BusinessException;
+import org.example.azoi.utils.repository.RoleRepository;
 import org.example.azoi.utils.repository.TagRepository;
+import org.example.azoi.utils.repository.UserRepository;
 import org.example.azoi.utils.repository.UserRoleRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,11 +24,13 @@ import java.util.Optional;
 public class TagServiceImpl implements TagService {
     private static final Logger log = LoggerFactory.getLogger(TagServiceImpl.class);
     private final TagRepository tagRepository;
-    private final UserRoleRepository userRoleRepository;
+    private final RoleRepository roleRepository;
+    private final UserRepository userRepository;
 
-    public TagServiceImpl(TagRepository tagRepository, UserRoleRepository userRoleRepository) {
+    public TagServiceImpl(TagRepository tagRepository, RoleRepository roleRepository, UserRepository userRepository) {
         this.tagRepository = tagRepository;
-        this.userRoleRepository = userRoleRepository;
+        this.roleRepository = roleRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -48,10 +53,10 @@ public class TagServiceImpl implements TagService {
     @Override
     public Result<Void> addTags(List<TagDTO> tagDTOs, Long requesterId) {
         Result<Void> result = checkerAdmin(requesterId);
-        if(result.getCode() == Result.FAIL)
+        if (result.getCode() == Result.FAIL)
             return new Result<>(null, Result.SUCCESS, result.getMsg());
 
-        for(TagDTO tagDTO : tagDTOs)
+        for (TagDTO tagDTO : tagDTOs)
             addTag(tagDTO);
 
         return new Result<>(null, Result.SUCCESS, "ok");
@@ -60,7 +65,7 @@ public class TagServiceImpl implements TagService {
     @Override
     public Result<Void> deleteTag(Long tagId, Long requesterId) {
         Result<Void> result = checkerAdmin(requesterId);
-        if(result.getCode() == Result.FAIL)
+        if (result.getCode() == Result.FAIL)
             return new Result<>(null, Result.SUCCESS, result.getMsg());
 
         tagRepository.deleteById(tagId);
@@ -70,7 +75,7 @@ public class TagServiceImpl implements TagService {
     @Override
     public Result<Void> modifyTag(Tag tag, Long requesterId) {
         Result<Void> result = checkerAdmin(requesterId);
-        if(result.getCode() == Result.FAIL)
+        if (result.getCode() == Result.FAIL)
             return new Result<>(null, Result.SUCCESS, result.getMsg());
 
         Tag saver = tagRepository.findById(tag.getId())
@@ -84,17 +89,20 @@ public class TagServiceImpl implements TagService {
 
     /**
      * 检查一个角色是否是admin
+     *
      * @param requesterId 请求者Id
      * @return 实际上Result没有内容，直接查看code
      */
     private Result<Void> checkerAdmin(Long requesterId) {
         //只有管理员才能能添加新的角色
-        Optional<UserRole> requester = userRoleRepository.findById_UserId((requesterId));
-        if (requester.isEmpty())
-            return new Result<>(null, Result.FAIL, "未找到您的信息: requester is empty");
-        if (!requester.get().getRole().getName().equals(Role.ROLE_ADMIN)) {
+        User user = userRepository.findById(requesterId)
+                .orElseThrow(() -> new BusinessException("未找到您的信息: requesterId not found: " + requesterId));
+
+        Role role = roleRepository.findById(user.getId())
+                .orElseThrow(() -> new BusinessException("未找到该角色: roleId not found:"));
+
+        if (!role.getName().equals(Role.ROLE_ADMIN))
             return new Result<>(null, Result.FAIL, "您不是管理员");
-        }
         return new Result<>(null, Result.SUCCESS, "ok");
     }
 }

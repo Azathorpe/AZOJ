@@ -15,7 +15,6 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/role")
-@Deprecated()
 public class RoleController {
 
     private final RoleService roleService;

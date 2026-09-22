@@ -52,16 +52,16 @@ public class ProblemServiceImpl implements ProblemService {
     private final ProblemFileRepository problemFileRepository;
     private final TagRepository tagRepository;
     private final UserRepository userRepository;
-    private final UserRoleRepository userRoleRepository;
+    private final RoleRepository roleRepository;
 
-    public ProblemServiceImpl(ProblemRepository problemRepository, TagRepository tagRepository, ProblemTagRepository problemTagRepository, ProblemSampleRepository problemSampleRepository, ProblemFileRepository problemFileRepository, UserRepository userRepository, UserRoleRepository userRoleRepository) {
+    public ProblemServiceImpl(ProblemRepository problemRepository, TagRepository tagRepository, ProblemTagRepository problemTagRepository, ProblemSampleRepository problemSampleRepository, ProblemFileRepository problemFileRepository, UserRepository userRepository, RoleRepository roleRepository, UserRoleRepository userRoleRepository) {
         this.problemRepository = problemRepository;
         this.tagRepository = tagRepository;
         this.problemTagRepository = problemTagRepository;
         this.problemSampleRepository = problemSampleRepository;
         this.problemFileRepository = problemFileRepository;
         this.userRepository = userRepository;
-        this.userRoleRepository = userRoleRepository;
+        this.roleRepository = roleRepository;
     }
 
     @Override
@@ -355,13 +355,17 @@ public class ProblemServiceImpl implements ProblemService {
      */
     private Result<Role> checkerAdminOrCreator(Problem problem, Long requesterId) {
         //只有管理员才能能添加新的角色
-        Optional<UserRole> requester = userRoleRepository.findById_UserId(requesterId);
-        if (requester.isEmpty())
-            return new Result<>(null, Result.FAIL, "未找到您的信息: requester is empty");
+        User user = userRepository.findById(requesterId).orElseThrow(
+                () -> new BusinessException("未找到您的信息: requesterId not found: " + requesterId)
+        );
 
-        if (!Objects.equals(requesterId, problem.getCreatedBy()))
-            if (!requester.get().getRole().getName().equals(Role.ROLE_ADMIN))
-                return new Result<>(null, Result.FAIL, "您不是管理员或者作者");
+        Role role = roleRepository.findById(user.getRole().longValue()).orElseThrow(
+                () -> new BusinessException("未找到您的角色信息: roleId not found")
+        );
+
+        if (!Objects.equals(role.getName(), Role.ROLE_ADMIN)
+                && !Objects.equals(requesterId, problem.getCreatedBy()))
+            return new Result<>(null, Result.FAIL, "您不是管理员或者作者");
 
         return new Result<>(null, Result.SUCCESS, "ok");
     }

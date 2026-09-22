@@ -8,15 +8,11 @@ import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.dto.usertransmit.UserLoginVO;
 import org.example.azoi.model.user_model.Role;
 import org.example.azoi.model.user_model.User;
-import org.example.azoi.model.user_model.UserRole;
-import org.example.azoi.model.user_model.UserRoleId;
-import org.example.azoi.service.UserRoleService;
 import org.example.azoi.service.UserService;
 import org.example.azoi.utils.JwtUtil;
 import org.example.azoi.utils.exception.BusinessException;
 import org.example.azoi.utils.repository.RoleRepository;
 import org.example.azoi.utils.repository.UserRepository;
-import org.example.azoi.utils.repository.UserRoleRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,14 +44,12 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final UserRoleRepository userRoleRepository;
     private final RoleRepository roleRepository;
     private final JwtUtil jwtUtil;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, UserRoleService userRoleService, UserRoleRepository userRoleRepository, RoleRepository roleRepository, JwtUtil jwtUtil) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.userRoleRepository = userRoleRepository;
         this.roleRepository = roleRepository;
         this.jwtUtil = jwtUtil;
     }
@@ -82,7 +76,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public Result<UserInfoVO> getUserInfoById(Long id) {
         Result<User> userResult = getUserById(id);
-        Role role = userRoleRepository.findById_UserId(id).orElseThrow(() -> new BusinessException("该角色并未找到,请联系管理员")).getRole();
         if (userResult.getCode() == Result.SUCCESS)
             return new Result<>(new UserInfoVO(userResult.getObj()), Result.SUCCESS, "ok");
         else
@@ -110,8 +103,6 @@ public class UserServiceImpl implements UserService {
         }
 
         userRepository.deleteById(id);
-        //在删除用户的时候，也要把他和Role的关系删除掉
-        userRoleRepository.deleteById_UserId(id);
         return new Result<>(null, Result.SUCCESS, "User deleted");
     }
 
@@ -154,13 +145,6 @@ public class UserServiceImpl implements UserService {
         Optional<Role> role = roleRepository.findById(Role.ROLE_NORMAL_id);
         if (role.isEmpty())
             throw new BusinessException("角色为空，请务必联系管理员");
-
-        //注册了User之后，也同样需要把Role注册一下，默认先注册成普通用户 也就是id为1的普通用户
-        UserRole userRole = new UserRole();
-        userRole.setUser(save);
-        userRole.setRole(role.get());
-        userRole.setId(new UserRoleId(user.getId(), role.get().getId()));
-        userRoleRepository.save(userRole);
 
         return new Result<>(new UserInfoVO(save), Result.SUCCESS, "success");
     }
@@ -237,12 +221,14 @@ public class UserServiceImpl implements UserService {
      */
     private Result<Void> checkerAdmin(Long requesterId) {
         //只有管理员才能能添加新的角色
-        Optional<UserRole> requester = userRoleRepository.findById_UserId((requesterId));
-        if (requester.isEmpty())
-            return new Result<>(null, Result.FAIL, "未找到您的信息: requester is empty");
-        if (!requester.get().getRole().getName().equals(Role.ROLE_ADMIN)) {
+        User user = userRepository.findById(requesterId)
+                .orElseThrow(() -> new BusinessException("未找到您的信息: requesterId not found: " + requesterId));
+
+        Role role = roleRepository.findById(user.getId())
+                .orElseThrow(() -> new BusinessException("未找到该角色: roleId not found:"));
+
+        if (!role.getName().equals(Role.ROLE_ADMIN))
             return new Result<>(null, Result.FAIL, "您不是管理员");
-        }
         return new Result<>(null, Result.SUCCESS, "ok");
     }
 }

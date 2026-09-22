@@ -8,7 +8,6 @@ import java.util.List;
 /**
  * 管理角色的存在和增删改查
  */
-@Deprecated
 public interface RoleService {
     Result<List<Role>> getRoles();
 

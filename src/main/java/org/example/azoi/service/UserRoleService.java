@@ -10,6 +10,7 @@ import java.util.List;
 /**
  * 管理用户和角色的关系
  */
+@Deprecated
 public interface UserRoleService {
     /**
      * 为用户添加角色,注意 需要在注册用户时调用这个方法 {@link UserService#registerUser(User)}
