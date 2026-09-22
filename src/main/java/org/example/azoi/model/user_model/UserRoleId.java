@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 @Embeddable
+@Deprecated
 public class UserRoleId implements Serializable {
     private static final long serialVersionUID = 8511661502422155379L;
     @Column(name = "user_id", nullable = false)

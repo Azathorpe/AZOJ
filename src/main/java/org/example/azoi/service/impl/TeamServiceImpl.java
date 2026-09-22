@@ -5,7 +5,7 @@ import org.example.azoi.dto.teamtransmit.TeamDTO;
 import org.example.azoi.dto.teamtransmit.TeamVO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.dto.usertransmit.UserSimpleInfoVO;
-import org.example.azoi.model.team_model.Role;
+import org.example.azoi.model.user_model.Role;
 import org.example.azoi.model.team_model.Team;
 import org.example.azoi.model.team_model.TeamMember;
 import org.example.azoi.model.team_model.TeamMemberId;

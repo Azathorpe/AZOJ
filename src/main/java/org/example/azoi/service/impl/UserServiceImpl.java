@@ -6,11 +6,10 @@ import org.example.azoi.dto.usertransmit.UserCurrentVO;
 import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.dto.usertransmit.UserLoginVO;
-import org.example.azoi.model.team_model.Role;
+import org.example.azoi.model.user_model.Role;
 import org.example.azoi.model.user_model.User;
 import org.example.azoi.model.user_model.UserRole;
 import org.example.azoi.model.user_model.UserRoleId;
-import org.example.azoi.service.RoleService;
 import org.example.azoi.service.UserRoleService;
 import org.example.azoi.service.UserService;
 import org.example.azoi.utils.JwtUtil;
@@ -30,7 +29,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,6 +82,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Result<UserInfoVO> getUserInfoById(Long id) {
         Result<User> userResult = getUserById(id);
+        Role role = userRoleRepository.findById_UserId(id).orElseThrow(() -> new BusinessException("该角色并未找到,请联系管理员")).getRole();
         if (userResult.getCode() == Result.SUCCESS)
             return new Result<>(new UserInfoVO(userResult.getObj()), Result.SUCCESS, "ok");
         else

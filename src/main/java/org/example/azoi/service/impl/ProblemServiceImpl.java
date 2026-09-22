@@ -9,7 +9,7 @@ import org.example.azoi.dto.problemtransmit.othertransmit.ProblemSampleDTO;
 import org.example.azoi.dto.problemtransmit.othertransmit.ProblemTagDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.model.problem_model.*;
-import org.example.azoi.model.team_model.Role;
+import org.example.azoi.model.user_model.Role;
 import org.example.azoi.model.user_model.User;
 import org.example.azoi.model.user_model.UserRole;
 import org.example.azoi.service.ProblemService;

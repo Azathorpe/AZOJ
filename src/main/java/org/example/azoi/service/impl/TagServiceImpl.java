@@ -4,7 +4,7 @@ import org.example.azoi.dto.Result;
 import org.example.azoi.dto.problemtransmit.othertransmit.TagDTO;
 import org.example.azoi.dto.problemtransmit.othertransmit.TagVO;
 import org.example.azoi.model.problem_model.Tag;
-import org.example.azoi.model.team_model.Role;
+import org.example.azoi.model.user_model.Role;
 import org.example.azoi.model.user_model.UserRole;
 import org.example.azoi.service.TagService;
 import org.example.azoi.utils.exception.BusinessException;

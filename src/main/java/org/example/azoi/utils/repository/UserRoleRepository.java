@@ -1,6 +1,5 @@
 package org.example.azoi.utils.repository;
 
-import org.example.azoi.model.team_model.Role;
 import org.example.azoi.model.user_model.User;
 import org.example.azoi.model.user_model.UserRole;
 import org.example.azoi.model.user_model.UserRoleId;
@@ -11,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
+@Deprecated
 public interface UserRoleRepository extends JpaRepository<UserRole, UserRoleId> {
     Optional<UserRole> getUserRoleById_UserId(Long idUserId);
 

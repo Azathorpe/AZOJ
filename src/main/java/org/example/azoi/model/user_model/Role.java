@@ -1,9 +1,10 @@
-package org.example.azoi.model.team_model;
+package org.example.azoi.model.user_model;
 
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "roles", schema = "azoi")
+@Deprecated
 public class Role {
 
     public static final String ROLE_ADMIN = "admin";

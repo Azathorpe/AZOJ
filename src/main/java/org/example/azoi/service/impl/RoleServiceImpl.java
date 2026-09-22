@@ -1,8 +1,7 @@
 package org.example.azoi.service.impl;
 
 import org.example.azoi.dto.Result;
-import org.example.azoi.model.team_model.Role;
-import org.example.azoi.model.user_model.User;
+import org.example.azoi.model.user_model.Role;
 import org.example.azoi.model.user_model.UserRole;
 import org.example.azoi.service.RoleService;
 import org.example.azoi.service.UserService;
@@ -17,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Deprecated
 public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;

@@ -1,7 +1,7 @@
 package org.example.azoi.controller.role;
 
 import org.example.azoi.dto.Result;
-import org.example.azoi.model.team_model.Role;
+import org.example.azoi.model.user_model.Role;
 import org.example.azoi.service.RoleService;
 import org.example.azoi.utils.anno.CurrentUser;
 import org.springframework.http.HttpStatus;
@@ -15,6 +15,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/role")
+@Deprecated()
 public class RoleController {
 
     private final RoleService roleService;
