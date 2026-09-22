@@ -20,6 +20,8 @@ public interface UserService {
      */
     Result<User> getUserById(Long id);
 
+    Result<Void> setUserRole(Long requesterId, Long targetUserId, Byte role);
+
     Result<List<UserInfoVO>> registerUsers(List<UserDTO> user, Long requesterId);
 
     Result<UserInfoVO> registerUser(UserDTO user);

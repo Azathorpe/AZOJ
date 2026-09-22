@@ -64,6 +64,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    public Result<Void> setUserRole(Long requesterId, Long targetUserId, Byte role) {
+        Result<Void> result = checkerAdmin(requesterId);
+        if(result.getCode() == Result.FAIL)
+            return result;
+
+        roleRepository.findById(role.longValue()).orElseThrow(
+                () -> new BusinessException("未找到对应的角色")
+        );
+
+        userRepository.findById(targetUserId).ifPresent(user -> user.setRole(role));
+        return new Result<>(null, Result.SUCCESS, "ok");
+    }
+
+    @Override
+    @Transactional
     public Result<List<UserInfoVO>> registerUsers(List<UserDTO> user, Long requesterId) {
 
         List<UserInfoVO> res = new ArrayList<>();

@@ -139,6 +139,17 @@ public class UserController {
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
+    @PostMapping("/setUserRole")
+    public ResponseEntity<Result<Void>> setUserRole(
+            @RequestParam Long userId,
+            @RequestParam Byte role,
+            @CurrentUser Long requesterId) {
+        Result<Void> result = userService.setUserRole(requesterId, userId, role);
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.status(HttpStatus.CREATED).body(result)
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+    }
+
     /**
      * 用户登录</br>
      * 请求地址: /user/login</br>
