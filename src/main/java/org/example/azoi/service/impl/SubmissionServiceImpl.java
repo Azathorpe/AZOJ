@@ -143,6 +143,14 @@ public class SubmissionServiceImpl implements SubmissionService {
                     }
                 }
         );
+        //顺便把用户的提交次数+1
+        userRepository
+                .findById(saved.getUserId())
+                .ifPresent(u -> u.setSubmitCount(u.getSubmitCount() + 1));
+        //这个题也要+1
+        problemRepository
+                .findById(problemId)
+                .ifPresent(pro -> pro.setSubmitCount(pro.getSubmitCount() + 1));
 
         return new Result<>(result.from(saved), Result.SUCCESS, "ok");
     }
@@ -203,6 +211,14 @@ public class SubmissionServiceImpl implements SubmissionService {
                     }
                 }
         );
+
+        //顺便把用户的提交次数+1
+        userRepository.findById(saved.getUserId())
+                .ifPresent(u -> u.setSubmitCount(u.getSubmitCount() + 1));
+        //这个题也要+1
+        problemRepository
+                .findById(problemId)
+                .ifPresent(pro -> pro.setSubmitCount(pro.getSubmitCount() + 1));
 
         if (res.getCode() == Result.SUCCESS)
             return new Result<>(result.from(saved), Result.SUCCESS, "ok");
