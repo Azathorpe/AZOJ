@@ -2,10 +2,7 @@ package org.example.azoi.service.impl;
 
 import jakarta.persistence.criteria.Predicate;
 import org.example.azoi.dto.Result;
-import org.example.azoi.dto.problemtransmit.ProblemCreateDTO;
-import org.example.azoi.dto.problemtransmit.ProblemInfoVO;
-import org.example.azoi.dto.problemtransmit.ProblemQueryDTO;
-import org.example.azoi.dto.problemtransmit.ProblemSimpleInfoVO;
+import org.example.azoi.dto.problemtransmit.*;
 import org.example.azoi.dto.problemtransmit.othertransmit.ProblemFileDTO;
 import org.example.azoi.dto.problemtransmit.othertransmit.ProblemFileVO;
 import org.example.azoi.dto.problemtransmit.othertransmit.ProblemSampleDTO;
@@ -21,6 +18,7 @@ import org.example.azoi.utils.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -67,7 +65,7 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     @Override
-    public Result<List<ProblemSimpleInfoVO>> getProblems(ProblemQueryDTO query) {
+    public Result<Page<ProblemSimpleInfoVO>> getProblems(ProblemQueryDTO query) {
         Specification<Problem> spec = (root, query1, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -101,7 +99,7 @@ public class ProblemServiceImpl implements ProblemService {
         );
 
         return new Result<>(
-                problemRepository.findAll(spec, pageable).stream().map(ProblemSimpleInfoVO::new).toList(),
+                problemRepository.findAll(spec, pageable).map(ProblemSimpleInfoVO::new),
                 Result.SUCCESS,
                 "ok");
     }
@@ -122,7 +120,28 @@ public class ProblemServiceImpl implements ProblemService {
                 this.setUsername("已注销");
             }});
 
-            return new Result<>(new ProblemInfoVO(problem, creatorInfo), Result.SUCCESS, "ok");
+            ProblemInfoVO problemInfoVO = new ProblemInfoVO(problem, creatorInfo);
+
+            //除了一些基本信息以外，我们还需要获取样例信息和标签信息
+            List<ProblemSampleVO> samples = new ArrayList<>(problemSampleRepository
+                    .findAllByProblemId(problemId)
+                    .stream()
+                    .map(ProblemSampleVO::new)
+                    .toList());
+            samples.sort(Comparator.comparing(ProblemSampleVO::getSort_order));
+            problemInfoVO.setSamples(samples);
+            // 查标签
+            List<String> tags = problemTagRepository.findAllById_ProblemId(problemId)
+                    .stream()
+                    .map(pt -> tagRepository.findById(pt.getId().getTagId())
+                            .map(Tag::getName)
+                            .orElse(""))
+                    .filter(name -> !name.isEmpty())
+                    .toList();
+            problemInfoVO.setTags(tags);
+
+
+            return new Result<>(problemInfoVO, Result.SUCCESS, "ok");
         }
         return new Result<>(null, Result.FAIL, "Problem not found");
     }
@@ -132,7 +151,7 @@ public class ProblemServiceImpl implements ProblemService {
     public Result<ProblemInfoVO> createProblem(ProblemCreateDTO problemCreateDTO, Long requesterId) {
         if (problemCreateDTO.getCreatedBy() == null)
             problemCreateDTO.setCreatedBy(requesterId);
-        else{
+        else {
             //检查这个作者是否存在
             userRepository.findById(problemCreateDTO.getCreatedBy())
                     .orElseThrow(() -> new BusinessException("这个作者不存在"));
@@ -201,7 +220,7 @@ public class ProblemServiceImpl implements ProblemService {
 
         //校验上传者是否是管理员或者作者
         Result<Role> checkerAdminOrCreator = checkerAdminOrCreator(problem.get(), requesterId);
-        if(checkerAdminOrCreator.getCode() == Result.FAIL)
+        if (checkerAdminOrCreator.getCode() == Result.FAIL)
             return new Result<>(null, Result.FAIL, checkerAdminOrCreator.getMsg());
 
         List<ProblemFileVO> pfs = new ArrayList<>();
@@ -227,7 +246,7 @@ public class ProblemServiceImpl implements ProblemService {
                 .orElseThrow(() -> new BusinessException("题目不存在"));
 
         Result<Role> checkerAdminOrCreator = checkerAdminOrCreator(problem, requesterId);
-        if(checkerAdminOrCreator.getCode() == Result.FAIL)
+        if (checkerAdminOrCreator.getCode() == Result.FAIL)
             return new Result<>(null, Result.FAIL, checkerAdminOrCreator.getMsg());
 
         problemRepository.findById(problemId).ifPresent(pro -> pro.setDeletedAt(Instant.now()));
@@ -241,7 +260,7 @@ public class ProblemServiceImpl implements ProblemService {
                 .orElseThrow(() -> new BusinessException("题目不存在"));
 
         Result<Role> checkerAdminOrCreator = checkerAdminOrCreator(problem, requesterId);
-        if(checkerAdminOrCreator.getCode() == Result.FAIL)
+        if (checkerAdminOrCreator.getCode() == Result.FAIL)
             return new Result<>(null, Result.FAIL, checkerAdminOrCreator.getMsg());
 
         StringBuilder msg = new StringBuilder();
@@ -329,7 +348,8 @@ public class ProblemServiceImpl implements ProblemService {
 
     /**
      * 检查一个角色是否是admin或creator
-     * @param problem 问题
+     *
+     * @param problem     问题
      * @param requesterId 请求者Id
      * @return 实际上Result没有内容，直接查看code
      */

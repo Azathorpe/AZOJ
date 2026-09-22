@@ -12,6 +12,7 @@ import org.example.azoi.dto.submittransmit.SubmitVO;
 import org.example.azoi.service.ProblemService;
 import org.example.azoi.service.SubmissionService;
 import org.example.azoi.utils.anno.CurrentUser;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,9 +40,9 @@ public class ProblemController {
      */
     // Tips: GET方法 不需要在入参加上RequestBody,Spring会自动把拼接的参数绑定进去，没有的字段就是null
     @GetMapping("/list")
-    public ResponseEntity<Result<List<ProblemSimpleInfoVO>>> getProblemListBy(
+    public ResponseEntity<Result<Page<ProblemSimpleInfoVO>>> getProblemListBy(
             ProblemQueryDTO problemQueryDTO) {
-        Result<List<ProblemSimpleInfoVO>> result = problemService.getProblems(problemQueryDTO);
+        Result<Page<ProblemSimpleInfoVO>> result = problemService.getProblems(problemQueryDTO);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.OK).body(result)
                 : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);

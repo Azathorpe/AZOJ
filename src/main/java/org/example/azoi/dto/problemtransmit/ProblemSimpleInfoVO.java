@@ -6,6 +6,7 @@ import java.time.Instant;
 
 //题目信息的简单化 建议在搜索页用这个实体
 public class ProblemSimpleInfoVO {
+    private Long problemId;
     private String title;
     private Byte difficulty;
     private Byte judgeType;
@@ -17,6 +18,7 @@ public class ProblemSimpleInfoVO {
     }
 
     public ProblemSimpleInfoVO(Problem problem){
+        this.problemId = problem.getId();
         this.acceptedCount = problem.getAcceptedCount();
         this.createdAt = problem.getCreatedAt();
         this.difficulty = problem.getDifficulty();
@@ -25,13 +27,22 @@ public class ProblemSimpleInfoVO {
         this.title = problem.getTitle();
     }
 
-    public ProblemSimpleInfoVO(String title, Byte difficulty, Byte judgeType, Integer submitCount, Integer acceptedCount, Instant createdAt) {
+    public ProblemSimpleInfoVO(Long problemId, String title, Byte difficulty, Byte judgeType, Integer submitCount, Integer acceptedCount, Instant createdAt) {
+        this.problemId = problemId;
         this.title = title;
         this.difficulty = difficulty;
         this.judgeType = judgeType;
         this.submitCount = submitCount;
         this.acceptedCount = acceptedCount;
         this.createdAt = createdAt;
+    }
+
+    public Long getProblemId() {
+        return problemId;
+    }
+
+    public void setProblemId(Long problemId) {
+        this.problemId = problemId;
     }
 
     public String getTitle() {
