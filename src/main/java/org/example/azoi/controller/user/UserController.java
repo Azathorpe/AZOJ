@@ -14,6 +14,7 @@ import org.example.azoi.utils.anno.CurrentUser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Objects;
@@ -36,21 +37,17 @@ public class UserController {
     }
 
     /**
-     * 获取一个用户的详细信息（需本人才能获取）<br/>
-     * 请求地址: /user/getUser<br/>
-     * 请求方法: /user/getUser?userId=x<br/>
+     * 获取一个用户的详细信息<br/>
+     * 请求地址: /user/me<br/>
+     * 请求方法: /user/me<br/>
      *
-     * @param userId      查询用户的id
      * @param requesterId 请求者的id
      * @return 该用户的详细信息{@link UserCurrentVO}
      */
-    @GetMapping("/getUser")
+    @GetMapping("/me")
     public ResponseEntity<Result<UserCurrentVO>> getUser(
-            @RequestParam Long userId,
             @CurrentUser Long requesterId) {
-        if (!Objects.equals(userId, requesterId))
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Result<>(null, Result.FAIL, "请本人登陆再获取详细信息: userId != requesterId"));
-        Result<UserCurrentVO> result = userService.getCurrentUser(userId);
+        Result<UserCurrentVO> result = userService.getCurrentUser(requesterId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.ok(result)
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
@@ -134,21 +131,20 @@ public class UserController {
     }
 
     /**
-     * 删除一个用户<br/>
-     * 请求地址: /user/delete<br/>
-     * 请求方法: /user/delete?userId=x
-     *
-     * @param userId      查询用户的id
-     * @param requesterId 请求者的id
-     * @return String 我也不知道是啥，祈祷不会出错🙏
+     * 上传一个用户的头像
+     * 请求地址: /user/avatar</br>
+     * 请求方法: /user/avatar  -> json:</br></br>
+     * @param avatar 头像文件
+     * @param requesterId 请求者Id
+     * @return 无
      */
-    @DeleteMapping("/delete")
-    public ResponseEntity<Result<String>> removeUser(
-            @RequestParam Long userId,
-            @CurrentUser Long requesterId) {
-        Result<String> result = userService.deleteUser(userId, requesterId);
+    @PostMapping("/avatar")
+    public ResponseEntity<Result<Void>> uploadAvatar(
+            MultipartFile avatar,
+            @CurrentUser Long requesterId){
+        Result<Void> result = userService.uploadUserAvatar(avatar, requesterId);
         return result.getCode() == Result.SUCCESS
-                ? ResponseEntity.ok(result)
+                ? ResponseEntity.status(HttpStatus.CREATED).body(result)
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
@@ -171,6 +167,25 @@ public class UserController {
         Result<UserLoginVO> result = userService.loginUser(user, httpServletRequest);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.ok(result)
-                : ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
+                : ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+    /**
+     * 删除一个用户<br/>
+     * 请求地址: /user/delete<br/>
+     * 请求方法: /user/delete?userId=x
+     *
+     * @param userId      查询用户的id
+     * @param requesterId 请求者的id
+     * @return String 我也不知道是啥，祈祷不会出错🙏
+     */
+    @DeleteMapping("/delete")
+    public ResponseEntity<Result<String>> removeUser(
+            @RequestParam Long userId,
+            @CurrentUser Long requesterId) {
+        Result<String> result = userService.deleteUser(userId, requesterId);
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.ok(result)
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 }

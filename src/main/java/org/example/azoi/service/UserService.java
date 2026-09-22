@@ -7,6 +7,7 @@ import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.dto.usertransmit.UserLoginVO;
 import org.example.azoi.model.user_model.User;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,6 +25,8 @@ public interface UserService {
     Result<UserInfoVO> registerUser(UserDTO user);
 
     Result<UserInfoVO> registerUser(User user);
+
+    Result<Void> uploadUserAvatar(MultipartFile file, Long requesterId);
 
     /**
      * 通过Id获取某位用户的公开信息，与{@link #getUserById(Long id)}不同的是 这个会返回UserInfoVO

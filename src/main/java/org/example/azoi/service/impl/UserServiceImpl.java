@@ -18,10 +18,19 @@ import org.example.azoi.utils.exception.BusinessException;
 import org.example.azoi.utils.repository.RoleRepository;
 import org.example.azoi.utils.repository.UserRepository;
 import org.example.azoi.utils.repository.UserRoleRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +42,12 @@ import java.util.Optional;
  */
 @Service
 public class UserServiceImpl implements UserService {
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
+    @Value("${azoi.storage.root}")
+    private String rootPath;
+    @Value("${azoi.storage.avatar-dir}")
+    private String avatarDir;
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserRoleRepository userRoleRepository;
@@ -81,7 +96,7 @@ public class UserServiceImpl implements UserService {
         if (userResult.getCode() == Result.SUCCESS)
             return new Result<>(new UserCurrentVO(userResult.getObj()), Result.SUCCESS, "ok");
         else
-            return new Result<>(null, Result.FAIL, "User not found");
+            return new Result<>(null, Result.FAIL, "找不到该用户");
     }
 
     @Override
@@ -91,7 +106,7 @@ public class UserServiceImpl implements UserService {
         if (!Objects.equals(id, requesterId)) {
             //如果不是本人 检查是不是管理员
             Result<Void> result = checkerAdmin(requesterId);
-            if(result.getCode() == Result.FAIL)
+            if (result.getCode() == Result.FAIL)
                 return new Result<>(null, Result.FAIL, result.getMsg());
         }
 
@@ -115,7 +130,7 @@ public class UserServiceImpl implements UserService {
                 return new Result<>(new UserLoginVO(token, new UserInfoVO(loginedUser)), Result.SUCCESS, "User logged in");
             }
         }
-        return new Result<>(null, Result.FAIL, "User not found or password incorrect");
+        return new Result<>(null, Result.FAIL, "用户名错误或者密码错误");
     }
 
     @Override
@@ -138,7 +153,7 @@ public class UserServiceImpl implements UserService {
         User save = userRepository.save(user);
 
         Optional<Role> role = roleRepository.findById(Role.ROLE_NORMAL_id);
-        if(role.isEmpty())
+        if (role.isEmpty())
             throw new BusinessException("角色为空，请务必联系管理员");
 
         //注册了User之后，也同样需要把Role注册一下，默认先注册成普通用户 也就是id为1的普通用户
@@ -149,6 +164,38 @@ public class UserServiceImpl implements UserService {
         userRoleRepository.save(userRole);
 
         return new Result<>(new UserInfoVO(save), Result.SUCCESS, "success");
+    }
+
+    @Override
+    public Result<Void> uploadUserAvatar(MultipartFile file, Long requesterId) {
+        //校验file是否存在
+        if (file == null || file.isEmpty())
+            throw new BusinessException("头像文件不能为空");
+
+        Path avatarPath = Paths.get(rootPath, avatarDir);
+        //检查头像文件夹是否存在
+        try {
+            Files.createDirectories(avatarPath);
+        } catch (IOException e) {
+            throw new BusinessException("头像文件夹创建失败，请联系管理员");
+        }
+
+        avatarPath = avatarPath.resolve(requesterId + ".jpg");
+        try {
+            file.transferTo(avatarPath);
+        } catch (IOException e) {
+            throw new BusinessException("头像文件写入失败，请联系管理员");
+        }
+
+        //更新数据库
+        User user = userRepository.findById(requesterId).orElseThrow(
+                () -> new BusinessException("为找到用户信息，请联系管理员")
+        );
+        user.setAvatarUrl(Paths.get(avatarDir, requesterId + ".jpg").toString());
+        log.info("User: {} , new avatar path: {}", user.getUsername(), avatarPath);
+        userRepository.save(user);
+
+        return new Result<>(null, Result.SUCCESS, "success");
     }
 
     @Override
@@ -185,6 +232,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 检查一个角色是否是admin
+     *
      * @param requesterId 请求者Id
      * @return 实际上Result没有内容，直接查看code
      */
