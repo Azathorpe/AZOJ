@@ -214,7 +214,7 @@ public class ProblemServiceImpl implements ProblemService {
 
     @Override
     @Transactional
-    public Result<List<ProblemFileVO>> createProblemFile(
+    public Result<List<ProblemFileVO>> uploadTestcases(
             Long problemId,
             MultipartFile[] files,
             Byte[] fileTypes,
@@ -226,7 +226,7 @@ public class ProblemServiceImpl implements ProblemService {
             return new Result<>(null, Result.FAIL, "找不到问题记录: Can't find problem");
 
         //校验上传者是否是管理员或者作者
-        Result<Role> checkerAdminOrCreator = checkerAdminOrCreator(problem.get(), requesterId);
+        Result<Void> checkerAdminOrCreator = checkerAdminOrCreator(problem.get(), requesterId);
         if (checkerAdminOrCreator.getCode() == Result.FAIL)
             return new Result<>(null, Result.FAIL, checkerAdminOrCreator.getMsg());
 
@@ -248,11 +248,36 @@ public class ProblemServiceImpl implements ProblemService {
 
     @Override
     @Transactional
+    public Result<Void> uploadTestCase(Long problemId,
+                                       MultipartFile input,
+                                       MultipartFile output,
+                                       Long requesterId) {
+        //先校验是否合法
+        if (input == null || input.isEmpty())
+            return new Result<>(null, Result.FAIL, "input file is empty");
+        if (output == null || output.isEmpty())
+            return new Result<>(null, Result.FAIL, "output file is empty");
+
+        //检查问题是否存在
+        Problem problem = problemRepository.findById(problemId).orElseThrow(
+                () -> new BusinessException("找不到该问题: problemId not found " + problemId)
+        );
+
+        //判断用户是否存在
+        Result<Void> checker = checkerAdminOrCreator(problem, requesterId);
+        if (checker.getCode() == Result.FAIL)
+            return new Result<>(null, Result.FAIL, checker.getMsg());
+
+        return uploadFile(problem, input, output);
+    }
+
+    @Override
+    @Transactional
     public Result<Void> removeProblem(Long problemId, Long requesterId) {
         Problem problem = problemRepository.findById(problemId)
                 .orElseThrow(() -> new BusinessException("题目不存在"));
 
-        Result<Role> checkerAdminOrCreator = checkerAdminOrCreator(problem, requesterId);
+        Result<Void> checkerAdminOrCreator = checkerAdminOrCreator(problem, requesterId);
         if (checkerAdminOrCreator.getCode() == Result.FAIL)
             return new Result<>(null, Result.FAIL, checkerAdminOrCreator.getMsg());
 
@@ -266,7 +291,7 @@ public class ProblemServiceImpl implements ProblemService {
         Problem problem = problemRepository.findById(problemId)
                 .orElseThrow(() -> new BusinessException("题目不存在"));
 
-        Result<Role> checkerAdminOrCreator = checkerAdminOrCreator(problem, requesterId);
+        Result<Void> checkerAdminOrCreator = checkerAdminOrCreator(problem, requesterId);
         if (checkerAdminOrCreator.getCode() == Result.FAIL)
             return new Result<>(null, Result.FAIL, checkerAdminOrCreator.getMsg());
 
@@ -291,14 +316,85 @@ public class ProblemServiceImpl implements ProblemService {
         return new Result<>(null, Result.SUCCESS, msg.toString());
     }
 
+    /**
+     * 一定要确保 input output 成对进 成对出
+     */
+    private Result<Void> uploadFile(
+            Problem problem,
+            MultipartFile input,
+            MultipartFile output) {
+        //查找这个问题下 有多少个测试例
+        long testcasesSize = problemFileRepository.countProblemFileByProblemIdAndFileType(problem.getId(), ProblemFile.FILE_TYPE_IN);
+        String fileNameInput = testcasesSize + 1 + ".in";
+        String fileNameOutput = testcasesSize + 1 + ".out";
+        //相对路径
+        String relativePathInput = problem.getId() + "/" + fileNameInput;
+        String relativePathOutput = problem.getId() + "/" + fileNameOutput;
 
-    private Result<ProblemFile> uploadFile(ProblemFileDTO problemFileDTO, Problem problem, int testPoint) {
-        return uploadFile(problemFileDTO.getFileType(), problemFileDTO.getFile(), problem, testPoint);
+        Path targetInput = Paths.get(storageRoot, problemPath).resolve(relativePathInput);
+        Path targetOutput = Paths.get(storageRoot, problemPath).resolve(relativePathOutput);
+
+        try {
+            Files.createDirectories(targetInput.getParent());
+//            Files.createDirectories(targetOutput.getParent());
+        } catch (IOException e) {
+            throw new BusinessException("文件夹创建失败，请联系管理员");
+        }
+
+        //Write
+        try (InputStream is = input.getInputStream()) {
+            Files.copy(is, targetInput, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            return new Result<>(null, Result.FAIL, "写入 input 失败: " + e.getMessage());
+        }
+
+        try (InputStream is = output.getInputStream()) {
+            Files.copy(is, targetOutput, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            // 回滚 input
+            try {
+                Files.deleteIfExists(targetInput);
+            } catch (IOException ignored) {
+
+            }
+            return new Result<>(null, Result.FAIL, "写入 output 失败: " + e.getMessage());
+        }
+
+        try {
+            //MD5
+            String md5Input = DigestUtils.md5DigestAsHex(Files.newInputStream(targetInput));
+            String md5Output = DigestUtils.md5DigestAsHex(Files.newInputStream(targetOutput));
+            ProblemFile pfIn = new ProblemFile();
+            pfIn.setProblemId(problem.getId());
+            pfIn.setFileType(ProblemFile.FILE_TYPE_IN);
+            pfIn.setFileSize(input.getSize());
+            pfIn.setFilename(targetInput.getFileName().toString());
+            pfIn.setMd5(md5Input);
+            pfIn.setStoragePath(relativePathInput);
+            problemFileRepository.save(pfIn);
+
+            ProblemFile pfOut = new ProblemFile();
+            pfOut.setProblemId(problem.getId());
+            pfOut.setFileType(ProblemFile.FILE_TYPE_OUT);
+            pfOut.setFileSize(output.getSize());
+            pfOut.setFilename(targetOutput.getFileName().toString());
+            pfOut.setMd5(md5Output);
+            pfOut.setStoragePath(relativePathOutput);
+            problemFileRepository.save(pfOut);
+
+            return new Result<>(null, Result.SUCCESS, "ok");
+        } catch (IOException e) {
+            return new Result<>(null, Result.FAIL, "文件保存失败 Exception:" + e.getMessage());
+        }
     }
 
-    private Result<ProblemFile> uploadFile(Byte fileType, MultipartFile file, Problem problem, int testPoint) {
+    private Result<ProblemFile> uploadFile(
+            Byte fileType,
+            MultipartFile file,
+            Problem problem,
+            int testPoint) {
         //我们将problem的名字+测试点 后缀通过fileType拼接
-        String fileName = "";
+        String fileName;
         try {
             fileName = testPoint + "." + ProblemFile.parseType(fileType);
         } catch (IllegalArgumentException e) {
@@ -360,7 +456,7 @@ public class ProblemServiceImpl implements ProblemService {
      * @param requesterId 请求者Id
      * @return 实际上Result没有内容，直接查看code
      */
-    private Result<Role> checkerAdminOrCreator(Problem problem, Long requesterId) {
+    private Result<Void> checkerAdminOrCreator(Problem problem, Long requesterId) {
         //只有管理员才能能添加新的角色
         User user = userRepository.findById(requesterId).orElseThrow(
                 () -> new BusinessException("未找到您的信息: requesterId not found: " + requesterId)

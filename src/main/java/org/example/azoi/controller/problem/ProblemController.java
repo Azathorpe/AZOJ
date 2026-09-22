@@ -15,7 +15,6 @@ import org.example.azoi.dto.submittransmit.SubmitVO;
 import org.example.azoi.service.ProblemService;
 import org.example.azoi.service.SubmissionService;
 import org.example.azoi.utils.anno.CurrentUser;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -98,12 +97,24 @@ public class ProblemController {
      */
     @PostMapping("/{problemId}/files")
     @JsonSetter(nulls = Nulls.SKIP)
-    public ResponseEntity<Result<List<ProblemFileVO>>> createProblemFile(
+    public ResponseEntity<Result<List<ProblemFileVO>>> uploadTests(
             @PathVariable Long problemId,
             @RequestParam("files") MultipartFile[] files,
             @RequestParam("fileTypes") Byte[] fileTypes,
             @CurrentUser Long requestUserId) {
-        Result<List<ProblemFileVO>> result = problemService.createProblemFile(problemId, files, fileTypes, requestUserId);
+        Result<List<ProblemFileVO>> result = problemService.uploadTestcases(problemId, files, fileTypes, requestUserId);
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.status(HttpStatus.OK).body(result)
+                : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+    }
+
+    @PostMapping("/{problemId}/testcase")
+    public ResponseEntity<Result<Void>> uploadTestcase(
+            @PathVariable Long problemId,
+            @RequestParam("input") MultipartFile inputFile,
+            @RequestParam("output") MultipartFile outputFile,
+            @CurrentUser Long requesterId) {
+        Result<Void> result = problemService.uploadTestCase(problemId, inputFile, outputFile, requesterId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.OK).body(result)
                 : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);

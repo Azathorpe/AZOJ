@@ -7,7 +7,6 @@ import org.example.azoi.dto.problemtransmit.ProblemQueryDTO;
 import org.example.azoi.dto.problemtransmit.ProblemSimpleInfoVO;
 import org.example.azoi.dto.problemtransmit.othertransmit.PageVO;
 import org.example.azoi.dto.problemtransmit.othertransmit.ProblemFileVO;
-import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -19,7 +18,9 @@ public interface ProblemService {
 
     Result<ProblemInfoVO> createProblem(ProblemCreateDTO problemCreateDTO, Long requesterId);
 
-    Result<List<ProblemFileVO>> createProblemFile(Long problemId , MultipartFile[] files, Byte[] fileTypes, Long requesterId);
+    Result<List<ProblemFileVO>> uploadTestcases(Long problemId , MultipartFile[] files, Byte[] fileTypes, Long requesterId);
+
+    Result<Void> uploadTestCase(Long problemId,MultipartFile input, MultipartFile output, Long requesterId);
 
     Result<Void> removeProblem(Long problemId, Long requesterId);
 

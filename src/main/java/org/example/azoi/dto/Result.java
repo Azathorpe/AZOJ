@@ -1,9 +1,11 @@
 package org.example.azoi.dto;
 
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * code : -1 FAIL
@@ -26,6 +28,31 @@ public class Result<T> {
         this.code = code;
         this.msg = msg;
     }
+
+    public static <T> Result<T> ok(){
+        return new Result<>(null, SUCCESS, "ok");
+    }
+
+    public static <T> Result<T> ok(T obj){
+        return new Result<>(obj, SUCCESS, "ok");
+    }
+
+    public static <T> Result<T> fail(){
+        return new Result<>(null, FAIL, "fail");
+    }
+
+    public static <T> Result<T> fail(T obj){
+        return new Result<>(obj, FAIL, "fail");
+    }
+
+    public static <T> Result<T> fail(String msg){
+        return new Result<>(null, FAIL, msg);
+    }
+
+    public static <T> Result<T> fail(T obj, String msg){
+        return new Result<>(obj, FAIL, msg);
+    }
+
 
     @Override
     public String toString() {
