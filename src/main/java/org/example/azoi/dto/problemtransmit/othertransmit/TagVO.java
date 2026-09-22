@@ -6,6 +6,7 @@ import org.example.azoi.model.problem_model.Tag;
 import java.time.Instant;
 
 public class TagVO {
+    private Long tagId;
     private String name;
     private String color;
     private Instant createdAt;
@@ -14,15 +15,25 @@ public class TagVO {
     }
 
     public TagVO(Tag tag){
+        this.tagId = tag.getId();
         this.name = tag.getName();
         this.color = tag.getColor();
         this.createdAt = tag.getCreatedAt();
     }
 
-    public TagVO(String name, String color, Instant createdAt) {
+    public TagVO(Long tagId, String name, String color, Instant createdAt) {
+        this.tagId = tagId;
         this.name = name;
         this.color = color;
         this.createdAt = createdAt;
+    }
+
+    public Long getTagId() {
+        return tagId;
+    }
+
+    public void setTagId(Long tagId) {
+        this.tagId = tagId;
     }
 
     public String getName() {

@@ -1,11 +1,14 @@
 package org.example.azoi.controller.problem;
 
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import org.example.azoi.dto.Result;
 import org.example.azoi.dto.problemtransmit.ProblemCreateDTO;
 import org.example.azoi.dto.problemtransmit.ProblemInfoVO;
 import org.example.azoi.dto.problemtransmit.ProblemQueryDTO;
 import org.example.azoi.dto.problemtransmit.ProblemSimpleInfoVO;
+import org.example.azoi.dto.problemtransmit.othertransmit.PageVO;
 import org.example.azoi.dto.problemtransmit.othertransmit.ProblemFileVO;
 import org.example.azoi.dto.submittransmit.SubmitDTO;
 import org.example.azoi.dto.submittransmit.SubmitVO;
@@ -40,9 +43,9 @@ public class ProblemController {
      */
     // Tips: GET方法 不需要在入参加上RequestBody,Spring会自动把拼接的参数绑定进去，没有的字段就是null
     @GetMapping("/list")
-    public ResponseEntity<Result<Page<ProblemSimpleInfoVO>>> getProblemListBy(
+    public ResponseEntity<Result<PageVO<ProblemSimpleInfoVO>>> getProblemListBy(
             ProblemQueryDTO problemQueryDTO) {
-        Result<Page<ProblemSimpleInfoVO>> result = problemService.getProblems(problemQueryDTO);
+        Result<PageVO<ProblemSimpleInfoVO>> result = problemService.getProblems(problemQueryDTO);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.status(HttpStatus.OK).body(result)
                 : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
@@ -94,6 +97,7 @@ public class ProblemController {
      * @return 放进去的测试文件s
      */
     @PostMapping("/{problemId}/files")
+    @JsonSetter(nulls = Nulls.SKIP)
     public ResponseEntity<Result<List<ProblemFileVO>>> createProblemFile(
             @PathVariable Long problemId,
             @RequestParam("files") MultipartFile[] files,

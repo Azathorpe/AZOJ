@@ -3,10 +3,7 @@ package org.example.azoi.service.impl;
 import jakarta.persistence.criteria.Predicate;
 import org.example.azoi.dto.Result;
 import org.example.azoi.dto.problemtransmit.*;
-import org.example.azoi.dto.problemtransmit.othertransmit.ProblemFileDTO;
-import org.example.azoi.dto.problemtransmit.othertransmit.ProblemFileVO;
-import org.example.azoi.dto.problemtransmit.othertransmit.ProblemSampleDTO;
-import org.example.azoi.dto.problemtransmit.othertransmit.ProblemTagDTO;
+import org.example.azoi.dto.problemtransmit.othertransmit.*;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.model.problem_model.*;
 import org.example.azoi.model.user_model.Role;
@@ -64,7 +61,7 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     @Override
-    public Result<Page<ProblemSimpleInfoVO>> getProblems(ProblemQueryDTO query) {
+    public Result<PageVO<ProblemSimpleInfoVO>> getProblems(ProblemQueryDTO query) {
         Specification<Problem> spec = (root, query1, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -97,8 +94,15 @@ public class ProblemServiceImpl implements ProblemService {
                 Sort.by(Sort.Direction.DESC, "createdAt")
         );
 
+        Page<Problem> page = problemRepository.findAll(spec, pageable);
+
+        List<ProblemSimpleInfoVO> content = page.stream().map(ProblemSimpleInfoVO::new).toList();
+
         return new Result<>(
-                problemRepository.findAll(spec, pageable).map(ProblemSimpleInfoVO::new),
+                PageVO.of(content,
+                        page.getTotalElements(),
+                        query.getPage(),
+                        query.getSize()),
                 Result.SUCCESS,
                 "ok");
     }
