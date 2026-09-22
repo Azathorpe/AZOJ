@@ -166,14 +166,16 @@ public class ProblemServiceImpl implements ProblemService {
         Long problemId = problem.getId();
         //通过Id注册samples,file和tags
         //samples
-        List<ProblemSampleDTO> samples = problemCreateDTO.getSamples();
-        int index = 0;
-        for (ProblemSampleDTO sample : samples) {
-            ProblemSample problemSample = new ProblemSample(sample);
-            problemSample.setProblemId(problemId);
-            problemSample.setSortOrder(problemSample.getSortOrder() == null ? index : problemSample.getSortOrder());
-            index++;
-            problemSampleRepository.save(problemSample);
+        if (problemCreateDTO.getSamples() != null) {
+            List<ProblemSampleDTO> samples = problemCreateDTO.getSamples();
+            int index = 0;
+            for (ProblemSampleDTO sample : samples) {
+                ProblemSample problemSample = new ProblemSample(sample);
+                problemSample.setProblemId(problemId);
+                problemSample.setSortOrder(problemSample.getSortOrder() == null ? index : problemSample.getSortOrder());
+                index++;
+                problemSampleRepository.save(problemSample);
+            }
         }
 
         //file (git 分支 separation 分离这个方法为创建题目 + 单独上传测试文件)
@@ -192,11 +194,13 @@ public class ProblemServiceImpl implements ProblemService {
 //        }
 
         //TAGS FIXME:这里估计会有bug 记得修复一下
-        List<ProblemTagDTO> tags = problemCreateDTO.getProblemTags();
-        for (ProblemTagDTO tag : tags) {
-            ProblemTag pt = new ProblemTag();
-            pt.setId(new ProblemTagId(problemId, tag.getTagId()));
-            problemTagRepository.save(pt);
+        if (problemCreateDTO.getProblemTags() != null) {
+            List<ProblemTagDTO> tags = problemCreateDTO.getProblemTags();
+            for (ProblemTagDTO tag : tags) {
+                ProblemTag pt = new ProblemTag();
+                pt.setId(new ProblemTagId(problemId, tag.getTagId()));
+                problemTagRepository.save(pt);
+            }
         }
 
         return new Result<>(new ProblemInfoVO(problem),
