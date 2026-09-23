@@ -13,7 +13,7 @@ public interface Compiler {
      * @return 编译后的可执行文件路径（相对路径）
      * @throws CompileException 编译失败
      */
-    ResultC compile(String sourceFile, String folderName);
+    ResultC compile(String sourceFile, Long userId);
 
     /**
      * 判断这个编译器支持哪种语言
@@ -22,5 +22,5 @@ public interface Compiler {
      */
     String supportedLanguage();
 
-    Result<String> run(String outputFile, String input);
+    ResultC run(String outputFile, String input);
 }

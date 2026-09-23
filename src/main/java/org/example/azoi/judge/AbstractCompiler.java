@@ -49,17 +49,21 @@ public abstract class AbstractCompiler implements Compiler {
      */
     protected abstract Path getOutputPath(Path source);
 
+    /**
+     * 运行的逻辑很简单
+     * 不同语言的运行时不一样，共同点都在于需要源文件，所以我们还是构造一个方法，让不同语言来重写
+     *
+     * @param sourceFile
+     * @param input
+     * @return
+     */
     @Override
-    public Result<String> run(String outputFile, String input) {
+    public ResultC run(String sourceFile, String input) {
         Path inputPath = Paths.get(rootPath, problemDir, input);
-        Path programPath = Paths.get(rootPath, outputFile);
+        Path programPath = Paths.get(rootPath, sourceFile);
         Path ans = programPath.getParent().getParent().resolve(input + ".ans");
 
-        ProcessBuilder pb;
-        if (outputFile.endsWith(".py"))
-            pb = new ProcessBuilder("python3", String.valueOf(programPath));
-        else
-            pb = new ProcessBuilder(String.valueOf(programPath));
+        ProcessBuilder pb = new ProcessBuilder(String.valueOf(programPath));
 
         pb.redirectInput(inputPath.toFile());
         pb.redirectOutput(ans.toFile());
@@ -74,18 +78,18 @@ public abstract class AbstractCompiler implements Compiler {
                 p.descendants().forEach(ProcessHandle::destroyForcibly);
                 p.destroyForcibly();
                 p.waitFor();
-                return Result.fail("TLE");
+                return new ResultC("", "Time Limit Exceeded", Submission.STATUS_TLE);
             }
 
             log.info("running success");
             int exitCode = p.exitValue();
             if (exitCode != 0) {
-                return Result.fail("Runtime Error: " + exitCode, String.valueOf(Submission.STATUS_RE));
+                return new ResultC("", "Runtime Error: " + exitCode, Submission.STATUS_RE);
             }
-            return Result.ok(Files.readString(ans), String.valueOf(Submission.STATUS_AC));
+            return new ResultC(Files.readString(ans), "", Submission.STATUS_AC);
 
         } catch (IOException | InterruptedException e) {
-            return Result.fail("Runtime Error: " + e, String.valueOf(Submission.STATUS_RE));
+            return new ResultC("", "Runtime Error: " + e, Submission.STATUS_RE);
         }
     }
 
@@ -98,17 +102,17 @@ public abstract class AbstractCompiler implements Compiler {
      * 最后我们都知道了，那就构建编译指令，通过不同的语言，构建不同的指令
      *
      * @param sourceFile 源文件相对路径（相对 storageRoot）
-     * @param folderName
+     * @param userId     用户Id
      * @return
      */
     @Override
-    public ResultC compile(String sourceFile, String folderName) {
+    public ResultC compile(String sourceFile, Long userId) {
         //代码文件的位置
         Path source = Paths.get(rootPath, submitPath).resolve(sourceFile);
         if (!Files.exists(source))
             return new ResultC(null, "源文件不存在", Submission.STATUS_CE);
 
-        Path outputPath = Paths.get(rootPath, compilePath).getParent().resolve(sourceFile);
+        Path outputPath = Paths.get(rootPath, compilePath).resolve(String.valueOf(userId));
         //编译产物的位置
         Path output = getOutputPath(outputPath);
         //连接编译指令
