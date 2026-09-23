@@ -150,6 +150,18 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     @Override
+    public Result<List<ProblemFileVO>> getProblemFiles(Long problemId, Long requesterId) {
+        Result<Void> result = checkerAdminOrCreator(problemId, requesterId);
+        if (result.getCode() == Result.FAIL)
+            return new Result<>(null, Result.FAIL, result.getMsg());
+
+        List<ProblemFileVO> res = problemFileRepository.findAllByProblemId(problemId)
+                .stream().map(ProblemFileVO::new).toList();
+
+        return Result.ok(res);
+    }
+
+    @Override
     @Transactional
     public Result<ProblemInfoVO> createProblem(ProblemCreateDTO problemCreateDTO, Long requesterId) {
         if (problemCreateDTO.getCreatedBy() == null)
@@ -214,12 +226,12 @@ public class ProblemServiceImpl implements ProblemService {
 
     @Override
     @Transactional
+    @Deprecated
     public Result<List<ProblemFileVO>> uploadTestcases(
             Long problemId,
             MultipartFile[] files,
             Byte[] fileTypes,
-            Long requesterId
-    ) {
+            Long requesterId) {
         //检查问题文件是否存在
         Optional<Problem> problem = problemRepository.findById(problemId);
         if (problem.isEmpty() || problem.get().getDeletedAt() != null)
@@ -240,7 +252,7 @@ public class ProblemServiceImpl implements ProblemService {
 
         for (int i = 0; i < files.length; i++) {
             Result<ProblemFile> result = uploadFile(fileTypes[i], files[i], problem.get(), index[fileTypes[i]]++);
-            pfs.add(new ProblemFileVO(result.getObj().getFilename(), result.getObj().getFileType(), result.getCode(), result.getMsg()));
+            pfs.add(new ProblemFileVO(result.getObj()));
         }
 
         return new Result<>(pfs, Result.SUCCESS, "please check pfs details");
@@ -314,6 +326,40 @@ public class ProblemServiceImpl implements ProblemService {
         problemRepository.deleteById(problemId);
 
         return new Result<>(null, Result.SUCCESS, msg.toString());
+    }
+
+    @Override
+    public Result<Void> deleteTestcase(Long problemId, Integer testPoint, Long requesterId) {
+        Result<Void> result = checkerAdminOrCreator(problemId, requesterId);
+        if (result.getCode() == Result.FAIL)
+            return Result.fail(result.getMsg());
+
+        // 找 .in 和 .out
+        String inName = testPoint + ".in";
+        String outName = testPoint + ".out";
+
+        List<ProblemFile> files = problemFileRepository.findAllByProblemId(problemId);
+        List<ProblemFile> toDelete = files.stream()
+                .filter(f -> f.getFilename().equals(inName) || f.getFilename().equals(outName))
+                .toList();
+
+        if (toDelete.isEmpty()) {
+            throw new BusinessException("测试点不存在");
+        }
+
+        for (ProblemFile pf : toDelete) {
+            // 删物理文件
+            Path path = Paths.get(storageRoot).resolve(pf.getStoragePath());
+            try {
+                Files.deleteIfExists(path);
+            } catch (IOException e) {
+                log.warn("删除文件失败: {}", path, e);
+            }
+            // 删数据库
+            problemFileRepository.delete(pf);
+        }
+
+        return Result.ok();
     }
 
     /**
@@ -447,6 +493,12 @@ public class ProblemServiceImpl implements ProblemService {
         }
         problemFileRepository.delete(problemFile);
         return new Result<>(null, Result.SUCCESS, "ok");
+    }
+
+    private Result<Void> checkerAdminOrCreator(Long problemId, Long requesterId) {
+        Problem problem = problemRepository.findById(problemId)
+                .orElseThrow(() -> new BusinessException("未找到题目: problemId not found:" + problemId));
+        return checkerAdminOrCreator(problem, requesterId);
     }
 
     /**

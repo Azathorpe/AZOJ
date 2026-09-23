@@ -16,13 +16,18 @@ public interface ProblemService {
 
     Result<ProblemInfoVO> getProblemById(Long problemId);
 
+    Result<List<ProblemFileVO>> getProblemFiles(Long problemId, Long requesterId);
+
     Result<ProblemInfoVO> createProblem(ProblemCreateDTO problemCreateDTO, Long requesterId);
 
-    Result<List<ProblemFileVO>> uploadTestcases(Long problemId , MultipartFile[] files, Byte[] fileTypes, Long requesterId);
+    @Deprecated
+    Result<List<ProblemFileVO>> uploadTestcases(Long problemId, MultipartFile[] files, Byte[] fileTypes, Long requesterId);
 
-    Result<Void> uploadTestCase(Long problemId,MultipartFile input, MultipartFile output, Long requesterId);
+    Result<Void> uploadTestCase(Long problemId, MultipartFile input, MultipartFile output, Long requesterId);
 
     Result<Void> removeProblem(Long problemId, Long requesterId);
 
     Result<Void> deleteProblem(Long problemId, Long requesterId);
+
+    Result<Void> deleteTestcase(Long problemId, Integer testPoint, Long requesterId);
 }
