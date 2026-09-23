@@ -83,14 +83,7 @@ public class JudgeService {
                 Files.createDirectory(path);
             }
             //获取所有测试例
-            ArrayList<String> testList = new ArrayList<>();
-            List<ProblemFile> files = problemFileRepository.findAllByProblemIdOrderByCreatedAtAsc(submission.getProblemId());
-            HashSet<String> dep = new HashSet<>();
-            for (ProblemFile problemFile : files) {
-                if (dep.contains(problemFile.getFilename().split("\\.")[0]))
-                    testList.add(problemFile.getStoragePath().split("\\.")[0]);
-                dep.add(problemFile.getFilename().split("\\.")[0]);
-            }
+            List<ProblemFile> testList = problemFileRepository.findAllByProblemIdAndFileTypeOrderByIdAsc(submission.getProblemId(), ProblemFile.FILE_TYPE_IN);
 
             TestPoint[] tp = new TestPoint[testList.size()];
             int pass = 0;
