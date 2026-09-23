@@ -39,8 +39,8 @@ public class JavaCompiler extends AbstractCompiler {
     @Override
     protected Path getOutputPath(Path source) {
         // Java 编译产物是 .class，路径是 output/Main.class
-        String className = source.getFileName().toString().replace(".java", "");
-        return source.resolveSibling(className + ".class");
+//        String className = source.getFileName().toString().replace(".java", "");
+        return source.resolveSibling("Main.class");
     }
 
     @Override

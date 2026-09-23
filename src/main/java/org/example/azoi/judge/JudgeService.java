@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 public class JudgeService {
@@ -80,10 +81,21 @@ public class JudgeService {
             Path path = Paths.get(rootPath, compileDir, submission.getUserId().toString(), submission.getProblemId().toString());
             if (!Files.exists(path)) {
                 log.info("{} 不存在，正在创建", path);
-                Files.createDirectory(path);
+                Files.createDirectories(path);
             }
             //获取所有测试例
-            List<ProblemFile> testList = problemFileRepository.findAllByProblemIdAndFileTypeOrderByIdAsc(submission.getProblemId(), ProblemFile.FILE_TYPE_IN);
+            List<ProblemFile> testFiles = problemFileRepository
+                    .findAllByProblemId(submission.getProblemId());
+
+            log.info("一共找到了{}个测试文件", testFiles.size());
+            List<ProblemFile> testList = testFiles.
+                    stream()
+                    .filter((t) -> t.getFileType() == ProblemFile.FILE_TYPE_IN)
+                    .toList();
+            List<ProblemFile> ansList = testFiles
+                    .stream()
+                    .filter((t) -> t.getFileType() == ProblemFile.FILE_TYPE_OUT)
+                    .toList();
 
             TestPoint[] tp = new TestPoint[testList.size()];
             int pass = 0;
@@ -96,10 +108,10 @@ public class JudgeService {
                 compiledPath = compiler.compile(submission.getAnswerFilePath(), submission.getUserId());
             else {
                 //如果是存在数据库里面，那我们就先写到用户文件夹的根下，编译完就丢掉
-                Path userFolder = Paths.get(rootPath, compileDir, submission.getUserId().toString()).resolve("defaultPath");
+                Path userFolder = Paths.get(rootPath, compileDir, submission.getUserId().toString());
                 if (!Files.exists(userFolder))
-                    Files.createDirectory(userFolder);
-                userFolder = userFolder.resolve("main." + LangParser.toExtension(submission.getLanguage()));
+                    Files.createDirectories(userFolder);
+                userFolder = userFolder.resolve("Main." + LangParser.toExtension(submission.getLanguage()));
 
                 //把数据库内的文件写下来
                 String code = submission.getCode();
@@ -114,8 +126,8 @@ public class JudgeService {
                 //运行
                 log.info("共有: {} 个文件等待测试.", tp.length);
                 for (int i = 0; i < testList.size(); i++) {
-                    String input = testList.get(i) + ".in", output = testList.get(i) + ".out";
-                    log.info("当前测试文件名: {}, 答案文件名: {}", input, output);
+                    String input = testList.get(i).getStoragePath(), answer = ansList.get(i).getStoragePath();
+                    log.info("当前测试文件名: {}, 答案文件名: {}", input, answer);
                     //使用流输入读取文件
                     ResultC out = compiler.run(compiledPath.getAns(), input);
 
@@ -127,7 +139,7 @@ public class JudgeService {
                     log.info("out: {}", out);
 
                     String myAnswer = out.getAns();
-                    Path standardAnswerPath = Paths.get(rootPath, problemDir).resolve(output);
+                    Path standardAnswerPath = Paths.get(rootPath, problemDir).resolve(answer);
                     String standardAnswer = Files.readString(standardAnswerPath);
 
                     //判断答案是否正确
@@ -143,15 +155,15 @@ public class JudgeService {
             }
 
             //如果是Java 那么把Java的输入文件改名为${submissionId}.java
-            if (LangParser.toExtension(submission.getLanguage()).equals("java")) {
-                Path javaFile = Paths.get(
-                        rootPath,
-                        submitDir,
-                        Long.toString(submission.getUserId()),
-                        Long.toString(submission.getProblemId()));
-                Files.move(javaFile.resolve("Main.java"),
-                        javaFile.resolve(submission.getId() + ".java"));
-            }
+//            if (LangParser.toExtension(submission.getLanguage()).equals("java")) {
+//                Path javaFile = Paths.get(
+//                        rootPath,
+//                        submitDir,
+//                        Long.toString(submission.getUserId()),
+//                        Long.toString(submission.getProblemId()));
+//                Files.move(javaFile.resolve("Main.java"),
+//                        javaFile.resolve(submission.getId() + ".java"));
+//            }
 
             // 3. 回写结果
             if (pass != tp.length) {

@@ -1,6 +1,5 @@
 package org.example.azoi.judge;
 
-import org.example.azoi.dto.Result;
 import org.example.azoi.dto.ResultC;
 import org.example.azoi.model.Submission;
 import org.slf4j.Logger;
@@ -57,41 +56,41 @@ public abstract class AbstractCompiler implements Compiler {
      * @param input
      * @return
      */
-    @Override
-    public ResultC run(String sourceFile, String input) {
-        Path inputPath = Paths.get(rootPath, problemDir, input);
-        Path programPath = Paths.get(rootPath, sourceFile);
-        Path ans = programPath.getParent().getParent().resolve(input + ".ans");
-
-        ProcessBuilder pb = new ProcessBuilder(String.valueOf(programPath));
-
-        pb.redirectInput(inputPath.toFile());
-        pb.redirectOutput(ans.toFile());
-
-        log.info("File was running.. The answer Path:{}, The input Path:{}, The Compiled File:{}", ans, inputPath, programPath);
-
-        Process p = null;
-        try {
-            p = pb.start();
-            boolean finished = p.waitFor(timeout, TimeUnit.MILLISECONDS);
-            if (!finished) {
-                p.descendants().forEach(ProcessHandle::destroyForcibly);
-                p.destroyForcibly();
-                p.waitFor();
-                return new ResultC("", "Time Limit Exceeded", Submission.STATUS_TLE);
-            }
-
-            log.info("running success");
-            int exitCode = p.exitValue();
-            if (exitCode != 0) {
-                return new ResultC("", "Runtime Error: " + exitCode, Submission.STATUS_RE);
-            }
-            return new ResultC(Files.readString(ans), "", Submission.STATUS_AC);
-
-        } catch (IOException | InterruptedException e) {
-            return new ResultC("", "Runtime Error: " + e, Submission.STATUS_RE);
-        }
-    }
+//    @Override
+//    public ResultC run(String sourceFile, String input) {
+//        Path inputPath = Paths.get(rootPath, problemDir, input);
+//        Path programPath = Paths.get(rootPath, sourceFile);
+//        Path ans = programPath.getParent().getParent().resolve(input + ".ans");
+//
+//        ProcessBuilder pb = new ProcessBuilder(String.valueOf(programPath));
+//
+//        pb.redirectInput(inputPath.toFile());
+//        pb.redirectOutput(ans.toFile());
+//
+//        log.info("File was running.. The answer Path:{}, The input Path:{}, The Compiled File:{}", ans, inputPath, programPath);
+//
+//        Process p = null;
+//        try {
+//            p = pb.start();
+//            boolean finished = p.waitFor(timeout, TimeUnit.MILLISECONDS);
+//            if (!finished) {
+//                p.descendants().forEach(ProcessHandle::destroyForcibly);
+//                p.destroyForcibly();
+//                p.waitFor();
+//                return new ResultC("", "Time Limit Exceeded", Submission.STATUS_TLE);
+//            }
+//
+//            log.info("running success");
+//            int exitCode = p.exitValue();
+//            if (exitCode != 0) {
+//                return new ResultC("", "Runtime Error: " + exitCode, Submission.STATUS_RE);
+//            }
+//            return new ResultC(Files.readString(ans), "", Submission.STATUS_AC);
+//
+//        } catch (IOException | InterruptedException e) {
+//            return new ResultC("", "Runtime Error: " + e, Submission.STATUS_RE);
+//        }
+//    }
 
     /**
      * 我们要将源文件sourceFile编译，导出到编译文件夹中/compiled/{userId}
@@ -116,6 +115,7 @@ public abstract class AbstractCompiler implements Compiler {
         //编译产物的位置
         Path output = getOutputPath(outputPath);
         //连接编译指令
+        log.info("Compiling " + sourceFile + " to " + outputPath);
         List<String> cmd = buildCompileCommand(source, output);
 
         if (cmd == null || cmd.isEmpty()) {
@@ -131,7 +131,7 @@ public abstract class AbstractCompiler implements Compiler {
 
         //开始编译
         log.info("编译: {}", String.join(" ", cmd));
-        runProcess(cmd);
+        runCompileProcess(cmd);
 
         if (!Files.exists(output)) {
             return new ResultC("", "编译产物不存在: " + output, Submission.STATUS_CE);
@@ -141,7 +141,7 @@ public abstract class AbstractCompiler implements Compiler {
         return new ResultC(relativize(output), "", Submission.STATUS_OK);
     }
 
-    protected void runProcess(List<String> cmd) {
+    protected void runCompileProcess(List<String> cmd) {
         ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.redirectErrorStream(true);
 

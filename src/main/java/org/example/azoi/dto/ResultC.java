@@ -17,6 +17,15 @@ public class ResultC {
         this.status = status;
     }
 
+    @Override
+    public String toString() {
+        return "ResultC{" +
+                "ans='" + ans + '\'' +
+                ", log='" + log + '\'' +
+                ", status=" + status +
+                '}';
+    }
+
     public String getAns() {
         return ans;
     }
