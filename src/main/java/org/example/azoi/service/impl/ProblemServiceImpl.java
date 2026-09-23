@@ -265,10 +265,10 @@ public class ProblemServiceImpl implements ProblemService {
                                        MultipartFile output,
                                        Long requesterId) {
         //先校验是否合法
-        if (input == null || input.isEmpty())
-            return new Result<>(null, Result.FAIL, "input file is empty");
-        if (output == null || output.isEmpty())
-            return new Result<>(null, Result.FAIL, "output file is empty");
+        if (input == null)
+            return new Result<>(null, Result.FAIL, "input file is null");
+        if (output == null)
+            return new Result<>(null, Result.FAIL, "output file is null");
 
         //检查问题是否存在
         Problem problem = problemRepository.findById(problemId).orElseThrow(

@@ -34,6 +34,9 @@ public abstract class AbstractCompiler implements Compiler {
     @Value("${azoi.compiler.timeout-seconds:10}")
     protected int compileTimeoutSeconds;
 
+    public static String COMPILE_STATUE_OK = "OK";
+    public static String COMPILE_STATUE_COMPILE_ERROR = "ERROR";
+
     /**
      * 子类实现：返回编译命令
      */
@@ -52,8 +55,8 @@ public abstract class AbstractCompiler implements Compiler {
         Path ans = programPath.getParent().getParent().resolve(input + ".ans");
 
         ProcessBuilder pb;
-        if(outputFile.endsWith(".py"))
-            pb = new ProcessBuilder("python3" ,String.valueOf(programPath));
+        if (outputFile.endsWith(".py"))
+            pb = new ProcessBuilder("python3", String.valueOf(programPath));
         else
             pb = new ProcessBuilder(String.valueOf(programPath));
 
@@ -70,26 +73,26 @@ public abstract class AbstractCompiler implements Compiler {
                 p.descendants().forEach(ProcessHandle::destroyForcibly);
                 p.destroyForcibly();
                 p.waitFor();
-                throw new BusinessException("时间超限");
+                return Result.fail("TLE");
             }
 
             log.info("running success");
             int exitCode = p.exitValue();
             if (exitCode != 0) {
-                throw new BusinessException("运行时错误，退出码 " + exitCode);
+                return Result.fail("Runtime Error: " + exitCode, String.valueOf(Submission.STATUS_RE));
             }
-            return new Result<>(Files.readString(ans), Result.SUCCESS, "ok");
+            return Result.ok(Files.readString(ans), String.valueOf(Submission.STATUS_AC));
 
         } catch (IOException | InterruptedException e) {
-            throw new BusinessException("运行时出错: " + e);
+            return Result.fail("Runtime Error: " + e, String.valueOf(Submission.STATUS_RE));
         }
     }
 
     @Override
-    public String compile(String sourceFile, String folderName) {
+    public Result<String> compile(String sourceFile, String folderName) {
         Path source = Paths.get(rootPath, submitPath).resolve(sourceFile);
         if (!Files.exists(source)) {
-            throw new CompileException("源文件不存在: " + sourceFile);
+            return Result.fail("源文件不存在: " + sourceFile, COMPILE_STATUE_COMPILE_ERROR);
         }
 
         Path outputPath = Paths.get(rootPath, compilePath).resolve(sourceFile);
@@ -102,19 +105,20 @@ public abstract class AbstractCompiler implements Compiler {
             try {
                 Files.copy(source, output, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                return Result.fail("复制文件失败, AbCompiler : line around 108", COMPILE_STATUE_COMPILE_ERROR);
             }
-            return relativize(output);
+            return Result.ok(relativize(output), COMPILE_STATUE_OK);
         }
 
         log.info("编译: {}", String.join(" ", cmd));
         runProcess(cmd);
 
         if (!Files.exists(output)) {
-            throw new CompileException("编译产物不存在: " + output);
+            return Result.fail("编译产物不存在: " + output, COMPILE_STATUE_COMPILE_ERROR);
+//            throw new CompileException("编译产物不存在: " + output);
         }
 
-        return relativize(output);
+        return Result.ok(relativize(output), COMPILE_STATUE_OK);
     }
 
     protected void runProcess(List<String> cmd) {

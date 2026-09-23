@@ -97,7 +97,7 @@ public class JudgeService {
             //编译 并且获得编译出的结果
             Compiler compiler = compilerFactory.get(submission.getLanguage());
 
-            String compiledPath = "";
+            Result<String> compiledPath;
             if (submission.getCode() == null)
                 compiledPath = compiler.compile(submission.getAnswerFilePath(), String.valueOf(submission.getUserId()));
             else {
@@ -116,32 +116,41 @@ public class JudgeService {
                 compiledPath = compiler.compile(String.valueOf(userFolder), String.valueOf(submission.getUserId()));
             }
 
-            //运行
-            log.info("共有: {} 个文件等待测试.", tp.length);
-            for (int i = 0; i < testList.size(); i++) {
-                String input = testList.get(i) + ".in", output = testList.get(i) + ".out";
-                log.info("当前测试文件名: {}, 答案文件名: {}", input, output);
-                //使用流输入读取文件
-                Result<String> out = compiler.run(compiledPath, input);
-                if (out.getCode() == Result.FAIL)
-                    log.info("out is FAIL, Reason: {}", Submission.parseStatus(out.getMsg()));
-                log.info("out: {}", out);
-                String myAnswer = out.getObj();
-                Path standardAnswerPath = Paths.get(rootPath, problemDir).resolve(output);
-                String standardAnswer = Files.readString(standardAnswerPath);
+            if (Objects.equals(compiledPath.getMsg(), AbstractCompiler.COMPILE_STATUE_OK)) {
+                //运行
+                log.info("共有: {} 个文件等待测试.", tp.length);
+                for (int i = 0; i < testList.size(); i++) {
+                    String input = testList.get(i) + ".in", output = testList.get(i) + ".out";
+                    log.info("当前测试文件名: {}, 答案文件名: {}", input, output);
+                    //使用流输入读取文件
+                    Result<String> out = compiler.run(compiledPath.getObj(), input);
 
-                if (myAnswer.trim().equals(standardAnswer.trim())) {
-                    tp[i] = new TestPoint(Submission.STATUS_AC, "");
-                    pass++;
-                } else {
-                    tp[i] = new TestPoint(
-                            Submission.toStatus(out.getMsg()) == Submission.STATUS_JUDGING
-                                    ? Submission.STATUS_WA
-                                    : Submission.toStatus(out.getMsg()),
-                            out.getObj());
+                    if (out.getCode() == Result.FAIL) {
+                        log.info("out is FAIL, Reason: {}", Submission.parseStatus(out.getMsg()));
+                        tp[i] = new TestPoint(Submission.toStatus(out.getMsg()), out.getObj());
+                        continue;
+                    }
+                    log.info("out: {}", out);
+
+                    String myAnswer = out.getObj();
+                    Path standardAnswerPath = Paths.get(rootPath, problemDir).resolve(output);
+                    String standardAnswer = Files.readString(standardAnswerPath);
+
+                    //判断答案是否正确
+                    if (myAnswer.trim().equals(standardAnswer.trim())) {
+                        tp[i] = new TestPoint(Submission.STATUS_AC, "");
+                        pass++;
+                    } else {
+                        tp[i] = new TestPoint(
+                                Submission.toStatus(out.getMsg()) == Submission.STATUS_JUDGING
+                                        ? Submission.STATUS_WA
+                                        : Submission.toStatus(out.getMsg()),
+                                out.getObj());
+                    }
                 }
+            }else{
+                log.info("编译出错: {}",  compiledPath.getObj());
             }
-
 
             //如果是Java 那么把Java的输入文件改名为${submissionId}.java
             if (LangParser.toExtension(submission.getLanguage()).equals("java")) {
@@ -168,6 +177,11 @@ public class JudgeService {
                         .findById(submission.getProblemId())
                         .ifPresent(pro -> pro.setAcceptedCount(pro.getAcceptedCount() + 1));
             }
+
+            //如果编译出错了，那就CE
+            if(Objects.equals(compiledPath.getMsg(), AbstractCompiler.COMPILE_STATUE_COMPILE_ERROR))
+                submission.setStatus(Submission.STATUS_CE);
+
             submission.setScore((int) Math.round(100.0 * pass / tp.length));
             submission.setTimeUsed(45);
             submission.setMemoryUsed(2048);
