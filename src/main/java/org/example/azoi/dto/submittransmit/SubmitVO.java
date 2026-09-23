@@ -5,92 +5,95 @@ import org.example.azoi.model.Submission;
 import java.time.Instant;
 
 public class SubmitVO {
-    private Long id;
+    private Long submissionId;
     private Long userId;
-    private Long contestId;
+    private String username;         // 提交者用户名
+    private Long problemId;
+    private String problemTitle;     // 题目标题
     private String language;
-    private Long answerFileSize;
+    private String code;             // 代码（详情用）
     private Byte status;
     private Integer score;
     private Integer timeUsed;
     private Integer memoryUsed;
-    private String judgeLog;
+    private String judgeLog;         // 每个测试点结果
+    private Instant createdAt;
     private Instant judgedAt;
-    private String problemTitle;
-    private String code;
 
     public SubmitVO() {
     }
 
-    public SubmitVO(Submission sub){
-        this.id = sub.getId();
-        this.userId = sub.getUserId();
-        this.contestId = sub.getContestId();
-        this.language = sub.getLanguage();
-        this.answerFileSize = sub.getAnswerFileSize();
-        this.status = sub.getStatus();
-        this.score = sub.getScore();
-        this.timeUsed = sub.getTimeUsed();
-        this.memoryUsed = sub.getMemoryUsed();
-        this.judgeLog = sub.getJudgeLog();
-        this.judgedAt = sub.getJudgedAt();
-        this.code = sub.getCode();
-    }
-
-    public SubmitVO(Long id,Long userId, String code, String problemTitle, Long contestId, String language, Long answerFileSize, Byte status, Integer score, Integer timeUsed, Integer memoryUsed, String judgeLog, Instant judgedAt) {
-        this.id = id;
-        this.code = code;
-        this.problemTitle = problemTitle;
+    public SubmitVO(Long submissionId, Long userId, String username, Long problemId, String problemTitle, String language, String code, Byte status, Integer score, Integer timeUsed, Integer memoryUsed, String judgeLog, Instant createdAt, Instant judgedAt) {
+        this.submissionId = submissionId;
         this.userId = userId;
-        this.contestId = contestId;
+        this.username = username;
+        this.problemId = problemId;
+        this.problemTitle = problemTitle;
         this.language = language;
-        this.answerFileSize = answerFileSize;
+        this.code = code;
         this.status = status;
         this.score = score;
         this.timeUsed = timeUsed;
         this.memoryUsed = memoryUsed;
         this.judgeLog = judgeLog;
+        this.createdAt = createdAt;
         this.judgedAt = judgedAt;
     }
 
-    public SubmitVO from(Submission sub){
-        this.id = sub.getId();
-        this.userId = sub.getUserId();
-        this.contestId = sub.getContestId();
-        this.language = sub.getLanguage();
-        this.answerFileSize = sub.getAnswerFileSize();
-        this.status = sub.getStatus();
-        this.score = sub.getScore();
-        this.timeUsed = sub.getTimeUsed();
-        this.memoryUsed = sub.getMemoryUsed();
-        this.judgeLog = sub.getJudgeLog();
-        this.judgedAt = sub.getJudgedAt();
-        this.code = sub.getCode();
+    public SubmitVO(Submission submission){
+        this.submissionId = submission.getId();
+        this.userId = submission.getUserId();
+        this.problemId = submission.getProblemId();
+        this.language = submission.getLanguage();
+        this.code = submission.getCode();
+        this.status = submission.getStatus();
+        this.score = submission.getScore();
+        this.timeUsed = submission.getTimeUsed();
+        this.memoryUsed = submission.getMemoryUsed();
+        this.judgeLog = submission.getJudgeLog();
+        this.createdAt = submission.getCreatedAt();
+        this.judgedAt = submission.getJudgedAt();
+    }
+
+    public SubmitVO(Submission submission, String username, String problemTitle){
+        this.submissionId = submission.getId();
+        this.userId = submission.getUserId();
+        this.username = username;
+        this.problemId = submission.getProblemId();
+        this.problemTitle = problemTitle;
+        this.language = submission.getLanguage();
+        this.code = submission.getCode();
+        this.status = submission.getStatus();
+        this.score = submission.getScore();
+        this.timeUsed = submission.getTimeUsed();
+        this.memoryUsed = submission.getMemoryUsed();
+        this.judgeLog = submission.getJudgeLog();
+        this.createdAt = submission.getCreatedAt();
+        this.judgedAt = submission.getJudgedAt();
+    }
+
+    public SubmitVO from(Submission submission){
+        this.submissionId = submission.getId();
+        this.userId = submission.getUserId();
+        this.problemId = submission.getProblemId();
+        this.language = submission.getLanguage();
+        this.code = submission.getCode();
+        this.status = submission.getStatus();
+        this.score = submission.getScore();
+        this.timeUsed = submission.getTimeUsed();
+        this.memoryUsed = submission.getMemoryUsed();
+        this.judgeLog = submission.getJudgeLog();
+        this.createdAt = submission.getCreatedAt();
+        this.judgedAt = submission.getJudgedAt();
         return this;
     }
 
-    public String getCode() {
-        return code;
+    public Long getSubmissionId() {
+        return submissionId;
     }
 
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public String getProblemTitle() {
-        return problemTitle;
-    }
-
-    public void setProblemTitle(String problemTitle) {
-        this.problemTitle = problemTitle;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
+    public void setSubmissionId(Long submissionId) {
+        this.submissionId = submissionId;
     }
 
     public Long getUserId() {
@@ -101,12 +104,28 @@ public class SubmitVO {
         this.userId = userId;
     }
 
-    public Long getContestId() {
-        return contestId;
+    public String getUsername() {
+        return username;
     }
 
-    public void setContestId(Long contestId) {
-        this.contestId = contestId;
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public Long getProblemId() {
+        return problemId;
+    }
+
+    public void setProblemId(Long problemId) {
+        this.problemId = problemId;
+    }
+
+    public String getProblemTitle() {
+        return problemTitle;
+    }
+
+    public void setProblemTitle(String problemTitle) {
+        this.problemTitle = problemTitle;
     }
 
     public String getLanguage() {
@@ -117,12 +136,12 @@ public class SubmitVO {
         this.language = language;
     }
 
-    public Long getAnswerFileSize() {
-        return answerFileSize;
+    public String getCode() {
+        return code;
     }
 
-    public void setAnswerFileSize(Long answerFileSize) {
-        this.answerFileSize = answerFileSize;
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public Byte getStatus() {
@@ -163,6 +182,14 @@ public class SubmitVO {
 
     public void setJudgeLog(String judgeLog) {
         this.judgeLog = judgeLog;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 
     public Instant getJudgedAt() {

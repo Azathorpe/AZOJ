@@ -1,6 +1,7 @@
 package org.example.azoi.service;
 
 import org.example.azoi.dto.Result;
+import org.example.azoi.dto.problemtransmit.othertransmit.PageVO;
 import org.example.azoi.dto.submittransmit.SubmitDTO;
 import org.example.azoi.dto.submittransmit.SubmitQueryDTO;
 import org.example.azoi.dto.submittransmit.SubmitVO;
@@ -13,7 +14,7 @@ public interface SubmissionService {
 
     Result<SubmitVO> submitCode(SubmitDTO submitDTO, Long requesterId);
 
-    Result<List<SubmitVO>> getSubmits(SubmitQueryDTO query);
+    Result<PageVO<SubmitVO>> getSubmits(SubmitQueryDTO query);
 
     Result<SubmitVO> getSubmit(Long submissionId);
 }
