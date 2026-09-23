@@ -8,6 +8,7 @@ import java.time.Instant;
 @Entity
 @Table(name = "submissions", schema = "azoi")
 public class Submission {
+    public static final byte STATUS_OK = -1;
     public static final byte STATUS_PENDING = 0;
     public static final byte STATUS_JUDGING = 1;
     public static final byte STATUS_AC = 2;

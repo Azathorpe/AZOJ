@@ -1,6 +1,7 @@
 package org.example.azoi.judge;
 
 import org.example.azoi.dto.Result;
+import org.example.azoi.dto.ResultC;
 import org.example.azoi.model.Submission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,37 +89,52 @@ public abstract class AbstractCompiler implements Compiler {
         }
     }
 
+    /**
+     * 我们要将源文件sourceFile编译，导出到编译文件夹中/compiled/{userId}
+     * 在此之前 我们要拼接源文件即: {rootPath}/{submitPath}/sourceFile
+     * 接下来是导出的位置 我们目标导出位置/compiled/{userId}
+     * 所以我们把source回到父文件夹(即刚好是{userId})
+     * 导出到那里
+     * 最后我们都知道了，那就构建编译指令，通过不同的语言，构建不同的指令
+     *
+     * @param sourceFile 源文件相对路径（相对 storageRoot）
+     * @param folderName
+     * @return
+     */
     @Override
-    public Result<String> compile(String sourceFile, String folderName) {
+    public ResultC compile(String sourceFile, String folderName) {
+        //代码文件的位置
         Path source = Paths.get(rootPath, submitPath).resolve(sourceFile);
-        if (!Files.exists(source)) {
-            return Result.fail("源文件不存在: " + sourceFile, COMPILE_STATUE_COMPILE_ERROR);
-        }
+        if (!Files.exists(source))
+            return new ResultC(null, "源文件不存在", Submission.STATUS_CE);
 
-        Path outputPath = Paths.get(rootPath, compilePath).resolve(sourceFile);
+        Path outputPath = Paths.get(rootPath, compilePath).getParent().resolve(sourceFile);
+        //编译产物的位置
         Path output = getOutputPath(outputPath);
-
+        //连接编译指令
         List<String> cmd = buildCompileCommand(source, output);
+
         if (cmd == null || cmd.isEmpty()) {
             // Python 等解释型语言，不需要编译 但是需要复制到compiled
             output = output.getParent().resolve("python.out.py");
             try {
                 Files.copy(source, output, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
-                return Result.fail("复制文件失败, AbCompiler : line around 108", COMPILE_STATUE_COMPILE_ERROR);
+                return new ResultC(null, "复制文件失败, 请联系管理员 错误代码: CE101", Submission.STATUS_CE);
             }
-            return Result.ok(relativize(output), COMPILE_STATUE_OK);
+            return new ResultC(relativize(output), "", Submission.STATUS_OK);
         }
 
+        //开始编译
         log.info("编译: {}", String.join(" ", cmd));
         runProcess(cmd);
 
         if (!Files.exists(output)) {
-            return Result.fail("编译产物不存在: " + output, COMPILE_STATUE_COMPILE_ERROR);
-//            throw new CompileException("编译产物不存在: " + output);
+            return new ResultC("", "编译产物不存在: " + output, Submission.STATUS_CE);
         }
 
-        return Result.ok(relativize(output), COMPILE_STATUE_OK);
+
+        return new ResultC(relativize(output), "", Submission.STATUS_OK);
     }
 
     protected void runProcess(List<String> cmd) {
