@@ -5,18 +5,14 @@ import org.example.azoi.dto.teamtransmit.TeamDTO;
 import org.example.azoi.dto.teamtransmit.TeamVO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.dto.usertransmit.UserSimpleInfoVO;
-import org.example.azoi.model.team_model.Role;
+import org.example.azoi.model.user_model.Role;
 import org.example.azoi.model.team_model.Team;
 import org.example.azoi.model.team_model.TeamMember;
 import org.example.azoi.model.team_model.TeamMemberId;
 import org.example.azoi.model.user_model.User;
-import org.example.azoi.model.user_model.UserRole;
 import org.example.azoi.service.TeamService;
 import org.example.azoi.utils.exception.BusinessException;
-import org.example.azoi.utils.repository.TeamMemberRepository;
-import org.example.azoi.utils.repository.TeamRepository;
-import org.example.azoi.utils.repository.UserRepository;
-import org.example.azoi.utils.repository.UserRoleRepository;
+import org.example.azoi.utils.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -32,14 +28,14 @@ public class TeamServiceImpl implements TeamService {
     private static final Logger log = LoggerFactory.getLogger(TeamServiceImpl.class);
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
-    private final UserRoleRepository userRoleRepository;
     private final TeamMemberRepository teamMemberRepository;
+    private final RoleRepository roleRepository;
 
-    public TeamServiceImpl(TeamRepository teamRepository, UserRepository userRepository, UserRoleRepository userRoleRepository, TeamMemberRepository teamMemberRepository) {
+    public TeamServiceImpl(TeamRepository teamRepository, UserRepository userRepository, TeamMemberRepository teamMemberRepository, RoleRepository roleRepository) {
         this.teamRepository = teamRepository;
         this.userRepository = userRepository;
-        this.userRoleRepository = userRoleRepository;
         this.teamMemberRepository = teamMemberRepository;
+        this.roleRepository = roleRepository;
     }
 
     //获取团队，不仅仅是团队的信息，还有创建者的详细信息和成员的简单信息
@@ -239,14 +235,16 @@ public class TeamServiceImpl implements TeamService {
      * @param requesterId 请求者Id
      * @return 实际上Result没有内容，直接查看code
      */
-    private Result<Role> checkerAdmin(Long requesterId) {
+    private Result<Void> checkerAdmin(Long requesterId) {
         //只有管理员才能能添加新的角色
-        Optional<UserRole> requester = userRoleRepository.findById_UserId((requesterId));
-        if (requester.isEmpty())
-            return new Result<>(null, Result.FAIL, "未找到您的信息: requester is empty");
-        if (!requester.get().getRole().getName().equals(Role.ROLE_ADMIN)) {
+        User user = userRepository.findById(requesterId)
+                .orElseThrow(() -> new BusinessException("未找到您的信息: requesterId not found: " + requesterId));
+
+        Role role = roleRepository.findById(user.getId())
+                .orElseThrow(() -> new BusinessException("未找到该角色: roleId not found:"));
+
+        if (!role.getName().equals(Role.ROLE_ADMIN))
             return new Result<>(null, Result.FAIL, "您不是管理员");
-        }
         return new Result<>(null, Result.SUCCESS, "ok");
     }
 

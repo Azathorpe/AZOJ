@@ -4,14 +4,14 @@ public class SubmitQueryDTO {
     private Long userId;
     private Long problemId;
     private Long contestId;
-    private byte status = -1;
+    private Byte status;
     private int page = 1;
     private int size = 20;
 
     public SubmitQueryDTO() {
     }
 
-    public SubmitQueryDTO(Long userId, Long problemId, Long contestId, byte status, int page, int size) {
+    public SubmitQueryDTO(Long userId, Long problemId, Long contestId, Byte status, int page, int size) {
         this.userId = userId;
         this.problemId = problemId;
         this.contestId = contestId;
@@ -44,11 +44,11 @@ public class SubmitQueryDTO {
         this.contestId = contestId;
     }
 
-    public byte getStatus() {
+    public Byte getStatus() {
         return status;
     }
 
-    public void setStatus(byte status) {
+    public void setStatus(Byte status) {
         this.status = status;
     }
 

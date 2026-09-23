@@ -2,25 +2,19 @@ package org.example.azoi.service.impl;
 
 import jakarta.persistence.criteria.Predicate;
 import org.example.azoi.dto.Result;
-import org.example.azoi.dto.problemtransmit.ProblemCreateDTO;
-import org.example.azoi.dto.problemtransmit.ProblemInfoVO;
-import org.example.azoi.dto.problemtransmit.ProblemQueryDTO;
-import org.example.azoi.dto.problemtransmit.ProblemSimpleInfoVO;
-import org.example.azoi.dto.problemtransmit.othertransmit.ProblemFileDTO;
-import org.example.azoi.dto.problemtransmit.othertransmit.ProblemFileVO;
-import org.example.azoi.dto.problemtransmit.othertransmit.ProblemSampleDTO;
-import org.example.azoi.dto.problemtransmit.othertransmit.ProblemTagDTO;
+import org.example.azoi.dto.problemtransmit.*;
+import org.example.azoi.dto.problemtransmit.othertransmit.*;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.model.problem_model.*;
-import org.example.azoi.model.team_model.Role;
+import org.example.azoi.model.user_model.Role;
 import org.example.azoi.model.user_model.User;
-import org.example.azoi.model.user_model.UserRole;
 import org.example.azoi.service.ProblemService;
 import org.example.azoi.utils.exception.BusinessException;
 import org.example.azoi.utils.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -54,20 +48,20 @@ public class ProblemServiceImpl implements ProblemService {
     private final ProblemFileRepository problemFileRepository;
     private final TagRepository tagRepository;
     private final UserRepository userRepository;
-    private final UserRoleRepository userRoleRepository;
+    private final RoleRepository roleRepository;
 
-    public ProblemServiceImpl(ProblemRepository problemRepository, TagRepository tagRepository, ProblemTagRepository problemTagRepository, ProblemSampleRepository problemSampleRepository, ProblemFileRepository problemFileRepository, UserRepository userRepository, UserRoleRepository userRoleRepository) {
+    public ProblemServiceImpl(ProblemRepository problemRepository, TagRepository tagRepository, ProblemTagRepository problemTagRepository, ProblemSampleRepository problemSampleRepository, ProblemFileRepository problemFileRepository, UserRepository userRepository, RoleRepository roleRepository) {
         this.problemRepository = problemRepository;
         this.tagRepository = tagRepository;
         this.problemTagRepository = problemTagRepository;
         this.problemSampleRepository = problemSampleRepository;
         this.problemFileRepository = problemFileRepository;
         this.userRepository = userRepository;
-        this.userRoleRepository = userRoleRepository;
+        this.roleRepository = roleRepository;
     }
 
     @Override
-    public Result<List<ProblemSimpleInfoVO>> getProblems(ProblemQueryDTO query) {
+    public Result<PageVO<ProblemSimpleInfoVO>> getProblems(ProblemQueryDTO query) {
         Specification<Problem> spec = (root, query1, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -100,8 +94,15 @@ public class ProblemServiceImpl implements ProblemService {
                 Sort.by(Sort.Direction.DESC, "createdAt")
         );
 
+        Page<Problem> page = problemRepository.findAll(spec, pageable);
+
+        List<ProblemSimpleInfoVO> content = page.stream().map(ProblemSimpleInfoVO::new).toList();
+
         return new Result<>(
-                problemRepository.findAll(spec, pageable).stream().map(ProblemSimpleInfoVO::new).toList(),
+                PageVO.of(content,
+                        page.getTotalElements(),
+                        query.getPage(),
+                        query.getSize()),
                 Result.SUCCESS,
                 "ok");
     }
@@ -122,9 +123,42 @@ public class ProblemServiceImpl implements ProblemService {
                 this.setUsername("已注销");
             }});
 
-            return new Result<>(new ProblemInfoVO(problem, creatorInfo), Result.SUCCESS, "ok");
+            ProblemInfoVO problemInfoVO = new ProblemInfoVO(problem, creatorInfo);
+
+            //除了一些基本信息以外，我们还需要获取样例信息和标签信息
+            List<ProblemSampleVO> samples = new ArrayList<>(problemSampleRepository
+                    .findAllByProblemId(problemId)
+                    .stream()
+                    .map(ProblemSampleVO::new)
+                    .toList());
+            samples.sort(Comparator.comparing(ProblemSampleVO::getSort_order));
+            problemInfoVO.setSamples(samples);
+            // 查标签
+            List<String> tags = problemTagRepository.findAllById_ProblemId(problemId)
+                    .stream()
+                    .map(pt -> tagRepository.findById(pt.getId().getTagId())
+                            .map(Tag::getName)
+                            .orElse(""))
+                    .filter(name -> !name.isEmpty())
+                    .toList();
+            problemInfoVO.setTags(tags);
+
+
+            return new Result<>(problemInfoVO, Result.SUCCESS, "ok");
         }
         return new Result<>(null, Result.FAIL, "Problem not found");
+    }
+
+    @Override
+    public Result<List<ProblemFileVO>> getProblemFiles(Long problemId, Long requesterId) {
+        Result<Void> result = checkerAdminOrCreator(problemId, requesterId);
+        if (result.getCode() == Result.FAIL)
+            return new Result<>(null, Result.FAIL, result.getMsg());
+
+        List<ProblemFileVO> res = problemFileRepository.findAllByProblemId(problemId)
+                .stream().map(ProblemFileVO::new).toList();
+
+        return Result.ok(res);
     }
 
     @Override
@@ -132,7 +166,7 @@ public class ProblemServiceImpl implements ProblemService {
     public Result<ProblemInfoVO> createProblem(ProblemCreateDTO problemCreateDTO, Long requesterId) {
         if (problemCreateDTO.getCreatedBy() == null)
             problemCreateDTO.setCreatedBy(requesterId);
-        else{
+        else {
             //检查这个作者是否存在
             userRepository.findById(problemCreateDTO.getCreatedBy())
                     .orElseThrow(() -> new BusinessException("这个作者不存在"));
@@ -148,14 +182,16 @@ public class ProblemServiceImpl implements ProblemService {
         Long problemId = problem.getId();
         //通过Id注册samples,file和tags
         //samples
-        List<ProblemSampleDTO> samples = problemCreateDTO.getSamples();
-        int index = 0;
-        for (ProblemSampleDTO sample : samples) {
-            ProblemSample problemSample = new ProblemSample(sample);
-            problemSample.setProblemId(problemId);
-            problemSample.setSortOrder(problemSample.getSortOrder() == null ? index : problemSample.getSortOrder());
-            index++;
-            problemSampleRepository.save(problemSample);
+        if (problemCreateDTO.getSamples() != null) {
+            List<ProblemSampleDTO> samples = problemCreateDTO.getSamples();
+            int index = 0;
+            for (ProblemSampleDTO sample : samples) {
+                ProblemSample problemSample = new ProblemSample(sample);
+                problemSample.setProblemId(problemId);
+                problemSample.setSortOrder(problemSample.getSortOrder() == null ? index : problemSample.getSortOrder());
+                index++;
+                problemSampleRepository.save(problemSample);
+            }
         }
 
         //file (git 分支 separation 分离这个方法为创建题目 + 单独上传测试文件)
@@ -174,11 +210,13 @@ public class ProblemServiceImpl implements ProblemService {
 //        }
 
         //TAGS FIXME:这里估计会有bug 记得修复一下
-        List<ProblemTagDTO> tags = problemCreateDTO.getProblemTags();
-        for (ProblemTagDTO tag : tags) {
-            ProblemTag pt = new ProblemTag();
-            pt.setId(new ProblemTagId(problemId, tag.getTagId()));
-            problemTagRepository.save(pt);
+        if (problemCreateDTO.getProblemTags() != null) {
+            List<ProblemTagDTO> tags = problemCreateDTO.getProblemTags();
+            for (ProblemTagDTO tag : tags) {
+                ProblemTag pt = new ProblemTag();
+                pt.setId(new ProblemTagId(problemId, tag.getTagId()));
+                problemTagRepository.save(pt);
+            }
         }
 
         return new Result<>(new ProblemInfoVO(problem),
@@ -188,20 +226,20 @@ public class ProblemServiceImpl implements ProblemService {
 
     @Override
     @Transactional
-    public Result<List<ProblemFileVO>> createProblemFile(
+    @Deprecated
+    public Result<List<ProblemFileVO>> uploadTestcases(
             Long problemId,
             MultipartFile[] files,
             Byte[] fileTypes,
-            Long requesterId
-    ) {
+            Long requesterId) {
         //检查问题文件是否存在
         Optional<Problem> problem = problemRepository.findById(problemId);
         if (problem.isEmpty() || problem.get().getDeletedAt() != null)
             return new Result<>(null, Result.FAIL, "找不到问题记录: Can't find problem");
 
         //校验上传者是否是管理员或者作者
-        Result<Role> checkerAdminOrCreator = checkerAdminOrCreator(problem.get(), requesterId);
-        if(checkerAdminOrCreator.getCode() == Result.FAIL)
+        Result<Void> checkerAdminOrCreator = checkerAdminOrCreator(problem.get(), requesterId);
+        if (checkerAdminOrCreator.getCode() == Result.FAIL)
             return new Result<>(null, Result.FAIL, checkerAdminOrCreator.getMsg());
 
         List<ProblemFileVO> pfs = new ArrayList<>();
@@ -214,10 +252,35 @@ public class ProblemServiceImpl implements ProblemService {
 
         for (int i = 0; i < files.length; i++) {
             Result<ProblemFile> result = uploadFile(fileTypes[i], files[i], problem.get(), index[fileTypes[i]]++);
-            pfs.add(new ProblemFileVO(result.getObj().getFilename(), result.getObj().getFileType(), result.getCode(), result.getMsg()));
+            pfs.add(new ProblemFileVO(result.getObj()));
         }
 
         return new Result<>(pfs, Result.SUCCESS, "please check pfs details");
+    }
+
+    @Override
+    @Transactional
+    public Result<Void> uploadTestCase(Long problemId,
+                                       MultipartFile input,
+                                       MultipartFile output,
+                                       Long requesterId) {
+        //先校验是否合法
+        if (input == null)
+            return new Result<>(null, Result.FAIL, "input file is null");
+        if (output == null)
+            return new Result<>(null, Result.FAIL, "output file is null");
+
+        //检查问题是否存在
+        Problem problem = problemRepository.findById(problemId).orElseThrow(
+                () -> new BusinessException("找不到该问题: problemId not found " + problemId)
+        );
+
+        //判断用户是否存在
+        Result<Void> checker = checkerAdminOrCreator(problem, requesterId);
+        if (checker.getCode() == Result.FAIL)
+            return new Result<>(null, Result.FAIL, checker.getMsg());
+
+        return uploadFile(problem, input, output);
     }
 
     @Override
@@ -226,8 +289,8 @@ public class ProblemServiceImpl implements ProblemService {
         Problem problem = problemRepository.findById(problemId)
                 .orElseThrow(() -> new BusinessException("题目不存在"));
 
-        Result<Role> checkerAdminOrCreator = checkerAdminOrCreator(problem, requesterId);
-        if(checkerAdminOrCreator.getCode() == Result.FAIL)
+        Result<Void> checkerAdminOrCreator = checkerAdminOrCreator(problem, requesterId);
+        if (checkerAdminOrCreator.getCode() == Result.FAIL)
             return new Result<>(null, Result.FAIL, checkerAdminOrCreator.getMsg());
 
         problemRepository.findById(problemId).ifPresent(pro -> pro.setDeletedAt(Instant.now()));
@@ -240,8 +303,8 @@ public class ProblemServiceImpl implements ProblemService {
         Problem problem = problemRepository.findById(problemId)
                 .orElseThrow(() -> new BusinessException("题目不存在"));
 
-        Result<Role> checkerAdminOrCreator = checkerAdminOrCreator(problem, requesterId);
-        if(checkerAdminOrCreator.getCode() == Result.FAIL)
+        Result<Void> checkerAdminOrCreator = checkerAdminOrCreator(problem, requesterId);
+        if (checkerAdminOrCreator.getCode() == Result.FAIL)
             return new Result<>(null, Result.FAIL, checkerAdminOrCreator.getMsg());
 
         StringBuilder msg = new StringBuilder();
@@ -265,14 +328,119 @@ public class ProblemServiceImpl implements ProblemService {
         return new Result<>(null, Result.SUCCESS, msg.toString());
     }
 
+    @Override
+    public Result<Void> deleteTestcase(Long problemId, Integer testPoint, Long requesterId) {
+        Result<Void> result = checkerAdminOrCreator(problemId, requesterId);
+        if (result.getCode() == Result.FAIL)
+            return Result.fail(result.getMsg());
 
-    private Result<ProblemFile> uploadFile(ProblemFileDTO problemFileDTO, Problem problem, int testPoint) {
-        return uploadFile(problemFileDTO.getFileType(), problemFileDTO.getFile(), problem, testPoint);
+        // 找 .in 和 .out
+        String inName = testPoint + ".in";
+        String outName = testPoint + ".out";
+
+        List<ProblemFile> files = problemFileRepository.findAllByProblemId(problemId);
+        List<ProblemFile> toDelete = files.stream()
+                .filter(f -> f.getFilename().equals(inName) || f.getFilename().equals(outName))
+                .toList();
+
+        if (toDelete.isEmpty()) {
+            throw new BusinessException("测试点不存在");
+        }
+
+        for (ProblemFile pf : toDelete) {
+            // 删物理文件
+            Path path = Paths.get(storageRoot).resolve(pf.getStoragePath());
+            try {
+                Files.deleteIfExists(path);
+            } catch (IOException e) {
+                log.warn("删除文件失败: {}", path, e);
+            }
+            // 删数据库
+            problemFileRepository.delete(pf);
+        }
+
+        return Result.ok();
     }
 
-    private Result<ProblemFile> uploadFile(Byte fileType, MultipartFile file, Problem problem, int testPoint) {
+    /**
+     * 一定要确保 input output 成对进 成对出
+     */
+    private Result<Void> uploadFile(
+            Problem problem,
+            MultipartFile input,
+            MultipartFile output) {
+        //查找这个问题下 有多少个测试例
+        long testcasesSize = problemFileRepository.countProblemFileByProblemIdAndFileType(problem.getId(), ProblemFile.FILE_TYPE_IN);
+        String fileNameInput = testcasesSize + 1 + ".in";
+        String fileNameOutput = testcasesSize + 1 + ".out";
+        //相对路径
+        String relativePathInput = problem.getId() + "/" + fileNameInput;
+        String relativePathOutput = problem.getId() + "/" + fileNameOutput;
+
+        Path targetInput = Paths.get(storageRoot, problemPath).resolve(relativePathInput);
+        Path targetOutput = Paths.get(storageRoot, problemPath).resolve(relativePathOutput);
+
+        try {
+            Files.createDirectories(targetInput.getParent());
+//            Files.createDirectories(targetOutput.getParent());
+        } catch (IOException e) {
+            throw new BusinessException("文件夹创建失败，请联系管理员");
+        }
+
+        //Write
+        try (InputStream is = input.getInputStream()) {
+            Files.copy(is, targetInput, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            return new Result<>(null, Result.FAIL, "写入 input 失败: " + e.getMessage());
+        }
+
+        try (InputStream is = output.getInputStream()) {
+            Files.copy(is, targetOutput, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            // 回滚 input
+            try {
+                Files.deleteIfExists(targetInput);
+            } catch (IOException ignored) {
+
+            }
+            return new Result<>(null, Result.FAIL, "写入 output 失败: " + e.getMessage());
+        }
+
+        try {
+            //MD5
+            String md5Input = DigestUtils.md5DigestAsHex(Files.newInputStream(targetInput));
+            String md5Output = DigestUtils.md5DigestAsHex(Files.newInputStream(targetOutput));
+            ProblemFile pfIn = new ProblemFile();
+            pfIn.setProblemId(problem.getId());
+            pfIn.setFileType(ProblemFile.FILE_TYPE_IN);
+            pfIn.setFileSize(input.getSize());
+            pfIn.setFilename(targetInput.getFileName().toString());
+            pfIn.setMd5(md5Input);
+            pfIn.setStoragePath(relativePathInput);
+            problemFileRepository.save(pfIn);
+
+            ProblemFile pfOut = new ProblemFile();
+            pfOut.setProblemId(problem.getId());
+            pfOut.setFileType(ProblemFile.FILE_TYPE_OUT);
+            pfOut.setFileSize(output.getSize());
+            pfOut.setFilename(targetOutput.getFileName().toString());
+            pfOut.setMd5(md5Output);
+            pfOut.setStoragePath(relativePathOutput);
+            problemFileRepository.save(pfOut);
+
+            return new Result<>(null, Result.SUCCESS, "ok");
+        } catch (IOException e) {
+            return new Result<>(null, Result.FAIL, "文件保存失败 Exception:" + e.getMessage());
+        }
+    }
+
+    private Result<ProblemFile> uploadFile(
+            Byte fileType,
+            MultipartFile file,
+            Problem problem,
+            int testPoint) {
         //我们将problem的名字+测试点 后缀通过fileType拼接
-        String fileName = "";
+        String fileName;
         try {
             fileName = testPoint + "." + ProblemFile.parseType(fileType);
         } catch (IllegalArgumentException e) {
@@ -327,21 +495,32 @@ public class ProblemServiceImpl implements ProblemService {
         return new Result<>(null, Result.SUCCESS, "ok");
     }
 
+    private Result<Void> checkerAdminOrCreator(Long problemId, Long requesterId) {
+        Problem problem = problemRepository.findById(problemId)
+                .orElseThrow(() -> new BusinessException("未找到题目: problemId not found:" + problemId));
+        return checkerAdminOrCreator(problem, requesterId);
+    }
+
     /**
      * 检查一个角色是否是admin或creator
-     * @param problem 问题
+     *
+     * @param problem     问题
      * @param requesterId 请求者Id
      * @return 实际上Result没有内容，直接查看code
      */
-    private Result<Role> checkerAdminOrCreator(Problem problem, Long requesterId) {
+    private Result<Void> checkerAdminOrCreator(Problem problem, Long requesterId) {
         //只有管理员才能能添加新的角色
-        Optional<UserRole> requester = userRoleRepository.findById_UserId(requesterId);
-        if (requester.isEmpty())
-            return new Result<>(null, Result.FAIL, "未找到您的信息: requester is empty");
+        User user = userRepository.findById(requesterId).orElseThrow(
+                () -> new BusinessException("未找到您的信息: requesterId not found: " + requesterId)
+        );
 
-        if (!Objects.equals(requesterId, problem.getCreatedBy()))
-            if (!requester.get().getRole().getName().equals(Role.ROLE_ADMIN))
-                return new Result<>(null, Result.FAIL, "您不是管理员或者作者");
+        Role role = roleRepository.findById(user.getRole().longValue()).orElseThrow(
+                () -> new BusinessException("未找到您的角色信息: roleId not found")
+        );
+
+        if (!Objects.equals(role.getName(), Role.ROLE_ADMIN)
+                && !Objects.equals(requesterId, problem.getCreatedBy()))
+            return new Result<>(null, Result.FAIL, "您不是管理员或者作者");
 
         return new Result<>(null, Result.SUCCESS, "ok");
     }

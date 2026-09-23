@@ -54,6 +54,9 @@ public class ProblemFile {
         return 2;
     }
 
+    public static byte FILE_TYPE_IN = 0;
+    public static byte FILE_TYPE_OUT = 1;
+
     public static String parseType(Byte fileType){
         return switch (fileType) {
             case 0 -> "in";

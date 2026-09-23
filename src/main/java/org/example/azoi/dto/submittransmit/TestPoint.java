@@ -1,6 +1,5 @@
 package org.example.azoi.dto.submittransmit;
 
-import org.example.azoi.controller.problem.SubmitController;
 import org.example.azoi.model.Submission;
 
 public class TestPoint {

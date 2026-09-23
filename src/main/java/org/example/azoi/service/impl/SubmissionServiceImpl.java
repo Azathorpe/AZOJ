@@ -3,6 +3,7 @@ package org.example.azoi.service.impl;
 import jakarta.persistence.criteria.Predicate;
 import org.example.azoi.dto.Result;
 import org.example.azoi.dto.problemtransmit.ProblemSimpleInfoVO;
+import org.example.azoi.dto.problemtransmit.othertransmit.PageVO;
 import org.example.azoi.dto.submittransmit.SubmitDTO;
 import org.example.azoi.dto.submittransmit.SubmitQueryDTO;
 import org.example.azoi.dto.submittransmit.SubmitVO;
@@ -19,6 +20,7 @@ import org.example.azoi.utils.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -36,10 +38,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Service
 public class SubmissionServiceImpl implements SubmissionService {
@@ -63,40 +64,49 @@ public class SubmissionServiceImpl implements SubmissionService {
     }
 
     @Override
-    public Result<List<SubmitVO>> getSubmits(SubmitQueryDTO query) {
-        Specification<Submission> spec = (root, query1, criteriaBuilder) -> {
+    public Result<PageVO<SubmitVO>> getSubmits(SubmitQueryDTO query) {
+        Pageable pageable = PageRequest.of(query.getPage() - 1, query.getSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Specification<Submission> spec = (root, cq, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-
             if (query.getUserId() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("userId").as(Long.class), query.getUserId()));
+                predicates.add(cb.equal(root.get("userId"), query.getUserId()));
             }
-
             if (query.getProblemId() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("problemId").as(Long.class), query.getProblemId()));
+                predicates.add(cb.equal(root.get("problemId"), query.getProblemId()));
             }
-
             if (query.getContestId() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("contestId").as(Long.class), query.getContestId()));
+                predicates.add(cb.equal(root.get("contestId"), query.getContestId()));
             }
-
-            if (query.getStatus() != -1) {
-                predicates.add(criteriaBuilder.equal(root.get("status").as(Byte.class), query.getStatus()));
+            if (query.getStatus() != null) {
+                predicates.add(cb.equal(root.get("status"), query.getStatus().byteValue()));
             }
-
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+            return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-        Pageable pageable = PageRequest.of(
-                Math.max(query.getPage() - 1, 0),
-                query.getSize(),
-                Sort.by(Sort.Direction.DESC, "createdAt")
-        );
+        Page<Submission> page = submissionRepository.findAll(spec, pageable);
 
-        return new Result<>(
-                submissionRepository.findAll(spec, pageable).stream().map(SubmitVO::new).toList(),
-                Result.SUCCESS,
-                "ok"
-        );
+        // 批量查 username 和 problemTitle
+        Set<Long> userIds = page.getContent().stream().map(Submission::getUserId).collect(Collectors.toSet());
+        Set<Long> problemIds = page.getContent().stream().map(Submission::getProblemId).collect(Collectors.toSet());
+
+        Map<Long, String> userMap = userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getId, User::getUsername));
+        Map<Long, String> problemMap = problemRepository.findAllById(problemIds).stream()
+                .collect(Collectors.toMap(Problem::getId, Problem::getTitle));
+
+        List<SubmitVO> content = page.getContent().stream()
+                .map(s -> {
+                    SubmitVO vo = new SubmitVO(s);
+                    vo.setUsername(userMap.get(s.getUserId()));
+                    vo.setProblemTitle(problemMap.get(s.getProblemId()));
+                    return vo;
+                })
+                .toList();
+
+        return Result.ok(PageVO.of(content, page.getTotalElements(),
+                query.getPage(), query.getSize()));
     }
 
     @Override
@@ -143,6 +153,14 @@ public class SubmissionServiceImpl implements SubmissionService {
                     }
                 }
         );
+        //顺便把用户的提交次数+1
+        userRepository
+                .findById(saved.getUserId())
+                .ifPresent(u -> u.setSubmitCount(u.getSubmitCount() + 1));
+        //这个题也要+1
+        problemRepository
+                .findById(problemId)
+                .ifPresent(pro -> pro.setSubmitCount(pro.getSubmitCount() + 1));
 
         return new Result<>(result.from(saved), Result.SUCCESS, "ok");
     }
@@ -203,6 +221,14 @@ public class SubmissionServiceImpl implements SubmissionService {
                     }
                 }
         );
+
+        //顺便把用户的提交次数+1
+        userRepository.findById(saved.getUserId())
+                .ifPresent(u -> u.setSubmitCount(u.getSubmitCount() + 1));
+        //这个题也要+1
+        problemRepository
+                .findById(problemId)
+                .ifPresent(pro -> pro.setSubmitCount(pro.getSubmitCount() + 1));
 
         if (res.getCode() == Result.SUCCESS)
             return new Result<>(result.from(saved), Result.SUCCESS, "ok");

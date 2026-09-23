@@ -5,6 +5,7 @@ import org.example.azoi.model.user_model.User;
 import java.time.Instant;
 
 public class UserInfoVO {
+    private Long userId;
     private String username;
     private String nickname;
     private String avatarUrl;
@@ -22,6 +23,7 @@ public class UserInfoVO {
     }
 
     public UserInfoVO(User user) {
+        this.userId = user.getId();
         this.username = user.getUsername();
         this.nickname = user.getNickname();
         this.avatarUrl = user.getAvatarUrl();
@@ -34,6 +36,14 @@ public class UserInfoVO {
         this.lastLoginAt = user.getLastLoginAt();
         this.lastLoginIp = user.getLastLoginIp();
         this.createdAt = user.getCreatedAt();
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public String getUsername() {

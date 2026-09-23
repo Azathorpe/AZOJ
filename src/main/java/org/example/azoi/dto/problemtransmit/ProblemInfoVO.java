@@ -3,11 +3,14 @@ package org.example.azoi.dto.problemtransmit;
 import jakarta.persistence.*;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.model.problem_model.Problem;
+import org.example.azoi.model.problem_model.ProblemSample;
 
 import java.time.Instant;
+import java.util.List;
 
 //题目信息+作者的VO
 public class ProblemInfoVO {
+    private Long problemId;
     private String title;
     private String description;
     private String inputFormat;
@@ -26,10 +29,14 @@ public class ProblemInfoVO {
 
     private UserInfoVO createdBy;
 
+    private List<ProblemSampleVO> samples;
+    private List<String> tags;
+
     public ProblemInfoVO() {
     }
 
     public ProblemInfoVO(Problem problem) {
+        this.problemId = problem.getId();
         this.title = problem.getTitle();
         this.description = problem.getDescription();
         this.inputFormat = problem.getInputFormat();
@@ -52,7 +59,8 @@ public class ProblemInfoVO {
         this.createdBy = createdBy;
     }
 
-    public ProblemInfoVO(String title, String description, String inputFormat, String outputFormat, String hint, Byte difficulty, Integer timeLimit, Integer memoryLimit, Integer outputLimit, Byte judgeType, Boolean isVisible, Integer submitCount, Integer acceptedCount, Instant createdAt, Instant updatedAt, UserInfoVO createdBy) {
+    public ProblemInfoVO(Long problemId,String title, String description, String inputFormat, String outputFormat, String hint, Byte difficulty, Integer timeLimit, Integer memoryLimit, Integer outputLimit, Byte judgeType, Boolean isVisible, Integer submitCount, Integer acceptedCount, Instant createdAt, Instant updatedAt, UserInfoVO createdBy) {
+        this.problemId = problemId;
         this.title = title;
         this.description = description;
         this.inputFormat = inputFormat;
@@ -69,6 +77,30 @@ public class ProblemInfoVO {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.createdBy = createdBy;
+    }
+
+    public Long getProblemId() {
+        return problemId;
+    }
+
+    public void setProblemId(Long problemId) {
+        this.problemId = problemId;
+    }
+
+    public List<ProblemSampleVO> getSamples() {
+        return samples;
+    }
+
+    public void setSamples(List<ProblemSampleVO> samples) {
+        this.samples = samples;
+    }
+
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
     }
 
     public String getTitle() {

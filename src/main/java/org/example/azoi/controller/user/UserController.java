@@ -6,51 +6,39 @@ import org.example.azoi.dto.usertransmit.UserCurrentVO;
 import org.example.azoi.dto.usertransmit.UserDTO;
 import org.example.azoi.dto.usertransmit.UserInfoVO;
 import org.example.azoi.dto.usertransmit.UserLoginVO;
-import org.example.azoi.model.team_model.Role;
-import org.example.azoi.service.UserRoleService;
 import org.example.azoi.service.UserService;
-import org.example.azoi.utils.JwtUtil;
 import org.example.azoi.utils.anno.CurrentUser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Objects;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 用于控制单个user相关的请求
  */
 
-//TODO: 添加更改用户的角色功能
 @RestController
 @RequestMapping("/user")
 public class UserController {
 
     private final UserService userService;
-    private final UserRoleService userRoleService;
 
-    public UserController(UserService userService, UserRoleService userRoleService, JwtUtil jwtUtil) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.userRoleService = userRoleService;
     }
 
     /**
-     * 获取一个用户的详细信息（需本人才能获取）<br/>
-     * 请求地址: /user/getUser<br/>
-     * 请求方法: /user/getUser?userId=x<br/>
+     * 获取一个用户的详细信息<br/>
+     * 请求地址: /user/me<br/>
+     * 请求方法: /user/me<br/>
      *
-     * @param userId      查询用户的id
      * @param requesterId 请求者的id
      * @return 该用户的详细信息{@link UserCurrentVO}
      */
-    @GetMapping("/getUser")
+    @GetMapping("/me")
     public ResponseEntity<Result<UserCurrentVO>> getUser(
-            @RequestParam Long userId,
             @CurrentUser Long requesterId) {
-        if (!Objects.equals(userId, requesterId))
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Result<>(null, Result.FAIL, "请本人登陆再获取详细信息: userId != requesterId"));
-        Result<UserCurrentVO> result = userService.getCurrentUser(userId);
+        Result<UserCurrentVO> result = userService.getCurrentUser(requesterId);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.ok(result)
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
@@ -75,43 +63,43 @@ public class UserController {
                 : ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
     }
 
-    /**
-     * 获取一个用户的角色(一般是admin或者normal， 后面可以把它变成一个称号之类的来用)<br/>
-     * 请求地址: /user/getUserRole<br/>
-     * 请求方法: /user/getUserRole?userId=x<br/>
-     *
-     * @param userId      查询用户的id
+    /*
+      获取一个用户的角色(一般是admin或者normal， 后面可以把它变成一个称号之类的来用)<br/>
+      请求地址: /user/getUserRole<br/>
+      请求方法: /user/getUserRole?userId=x<br/>
+
+      @param userId      查询用户的id
      * @param requesterId 请求者的id
      * @return 角色{@link Role}
      */
-    @GetMapping("/getUserRole")
-    public ResponseEntity<Result<Role>> getUserRole(
-            @RequestParam Long userId,
-            @CurrentUser Long requesterId) {
-        Result<Role> result = userRoleService.getUserRoles(userId);
-        return result.getCode() == Result.SUCCESS
-                ? ResponseEntity.ok(result)
-                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
-    }
+//    @GetMapping("/getUserRole")
+//    public ResponseEntity<Result<Role>> getUserRole(
+//            @RequestParam Long userId,
+//            @CurrentUser Long requesterId) {
+//        Result<Role> result = userRoleService.getUserRoles(userId);
+//        return result.getCode() == Result.SUCCESS
+//                ? ResponseEntity.ok(result)
+//                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+//    }
 
-    /**
-     * 获取带有某种角色的用户
-     * 请求地址: /user/getRoleUser
-     * 请求方法: /user/getRoleUser?roleId=x
-     *
-     * @param roleId      查询角色的id
+    /*
+      获取带有某种角色的用户
+      请求地址: /user/getRoleUser
+      请求方法: /user/getRoleUser?roleId=x
+
+      @param roleId      查询角色的id
      * @param requesterId 请求者的id
      * @return List<UserInfoVO> {@link List} of {@link UserInfoVO}
      */
-    @GetMapping("/getRoleUser")
-    public ResponseEntity<Result<List<UserInfoVO>>> getRoleUser(
-            @RequestParam Long roleId,
-            @CurrentUser Long requesterId) {
-        Result<List<UserInfoVO>> result = userRoleService.getRoleUsers(roleId);
-        return result.getCode() == Result.SUCCESS
-                ? ResponseEntity.ok(result)
-                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
-    }
+//    @GetMapping("/getRoleUser")
+//    public ResponseEntity<Result<List<UserInfoVO>>> getRoleUser(
+//            @RequestParam Long roleId,
+//            @CurrentUser Long requesterId) {
+//        Result<List<UserInfoVO>> result = userRoleService.getRoleUsers(roleId);
+//        return result.getCode() == Result.SUCCESS
+//                ? ResponseEntity.ok(result)
+//                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+//    }
 
     /**
      * 注册用户
@@ -134,21 +122,31 @@ public class UserController {
     }
 
     /**
-     * 删除一个用户<br/>
-     * 请求地址: /user/delete<br/>
-     * 请求方法: /user/delete?userId=x
-     *
-     * @param userId      查询用户的id
-     * @param requesterId 请求者的id
-     * @return String 我也不知道是啥，祈祷不会出错🙏
+     * 上传一个用户的头像
+     * 请求地址: /user/avatar</br>
+     * 请求方法: /user/avatar  -> json:</br></br>
+     * @param avatar 头像文件
+     * @param requesterId 请求者Id
+     * @return 无
      */
-    @DeleteMapping("/delete")
-    public ResponseEntity<Result<String>> removeUser(
-            @RequestParam Long userId,
-            @CurrentUser Long requesterId) {
-        Result<String> result = userService.deleteUser(userId, requesterId);
+    @PostMapping("/avatar")
+    public ResponseEntity<Result<Void>> uploadAvatar(
+            MultipartFile avatar,
+            @CurrentUser Long requesterId){
+        Result<Void> result = userService.uploadUserAvatar(avatar, requesterId);
         return result.getCode() == Result.SUCCESS
-                ? ResponseEntity.ok(result)
+                ? ResponseEntity.status(HttpStatus.CREATED).body(result)
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+    }
+
+    @PostMapping("/setUserRole")
+    public ResponseEntity<Result<Void>> setUserRole(
+            @RequestParam Long userId,
+            @RequestParam Byte role,
+            @CurrentUser Long requesterId) {
+        Result<Void> result = userService.setUserRole(requesterId, userId, role);
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.status(HttpStatus.CREATED).body(result)
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
@@ -171,6 +169,25 @@ public class UserController {
         Result<UserLoginVO> result = userService.loginUser(user, httpServletRequest);
         return result.getCode() == Result.SUCCESS
                 ? ResponseEntity.ok(result)
-                : ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
+                : ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+    /**
+     * 删除一个用户<br/>
+     * 请求地址: /user/delete<br/>
+     * 请求方法: /user/delete?userId=x
+     *
+     * @param userId      查询用户的id
+     * @param requesterId 请求者的id
+     * @return String 我也不知道是啥，祈祷不会出错🙏
+     */
+    @DeleteMapping("/delete")
+    public ResponseEntity<Result<String>> removeUser(
+            @RequestParam Long userId,
+            @CurrentUser Long requesterId) {
+        Result<String> result = userService.deleteUser(userId, requesterId);
+        return result.getCode() == Result.SUCCESS
+                ? ResponseEntity.ok(result)
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 }

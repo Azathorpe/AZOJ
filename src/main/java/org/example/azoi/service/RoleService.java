@@ -1,7 +1,7 @@
 package org.example.azoi.service;
 
 import org.example.azoi.dto.Result;
-import org.example.azoi.model.team_model.Role;
+import org.example.azoi.model.user_model.Role;
 
 import java.util.List;
 
