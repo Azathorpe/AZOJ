@@ -1,6 +1,7 @@
 package org.example.azoi.judge;
 
 import org.example.azoi.dto.Result;
+import org.example.azoi.dto.ResultC;
 import org.example.azoi.model.Submission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,80 +49,102 @@ public abstract class AbstractCompiler implements Compiler {
      */
     protected abstract Path getOutputPath(Path source);
 
+    /**
+     * 运行的逻辑很简单
+     * 不同语言的运行时不一样，共同点都在于需要源文件，所以我们还是构造一个方法，让不同语言来重写
+     *
+     * @param sourceFile
+     * @param input
+     * @return
+     */
+//    @Override
+//    public ResultC run(String sourceFile, String input) {
+//        Path inputPath = Paths.get(rootPath, problemDir, input);
+//        Path programPath = Paths.get(rootPath, sourceFile);
+//        Path ans = programPath.getParent().getParent().resolve(input + ".ans");
+//
+//        ProcessBuilder pb = new ProcessBuilder(String.valueOf(programPath));
+//
+//        pb.redirectInput(inputPath.toFile());
+//        pb.redirectOutput(ans.toFile());
+//
+//        log.info("File was running.. The answer Path:{}, The input Path:{}, The Compiled File:{}", ans, inputPath, programPath);
+//
+//        Process p = null;
+//        try {
+//            p = pb.start();
+//            boolean finished = p.waitFor(timeout, TimeUnit.MILLISECONDS);
+//            if (!finished) {
+//                p.descendants().forEach(ProcessHandle::destroyForcibly);
+//                p.destroyForcibly();
+//                p.waitFor();
+//                return new ResultC("", "Time Limit Exceeded", Submission.STATUS_TLE);
+//            }
+//
+//            log.info("running success");
+//            int exitCode = p.exitValue();
+//            if (exitCode != 0) {
+//                return new ResultC("", "Runtime Error: " + exitCode, Submission.STATUS_RE);
+//            }
+//            return new ResultC(Files.readString(ans), "", Submission.STATUS_AC);
+//
+//        } catch (IOException | InterruptedException e) {
+//            return new ResultC("", "Runtime Error: " + e, Submission.STATUS_RE);
+//        }
+//    }
+
+    /**
+     * 我们要将源文件sourceFile编译，导出到编译文件夹中/compiled/{userId}
+     * 在此之前 我们要拼接源文件即: {rootPath}/{submitPath}/sourceFile
+     * 接下来是导出的位置 我们目标导出位置/compiled/{userId}
+     * 所以我们把source回到父文件夹(即刚好是{userId})
+     * 导出到那里
+     * 最后我们都知道了，那就构建编译指令，通过不同的语言，构建不同的指令
+     *
+     * @param sourceFile 源文件相对路径（相对 storageRoot）
+     * @param userId     用户Id
+     * @return
+     */
     @Override
-    public Result<String> run(String outputFile, String input) {
-        Path inputPath = Paths.get(rootPath, problemDir, input);
-        Path programPath = Paths.get(rootPath, outputFile);
-        Path ans = programPath.getParent().getParent().resolve(input + ".ans");
-
-        ProcessBuilder pb;
-        if (outputFile.endsWith(".py"))
-            pb = new ProcessBuilder("python3", String.valueOf(programPath));
-        else
-            pb = new ProcessBuilder(String.valueOf(programPath));
-
-        pb.redirectInput(inputPath.toFile());
-        pb.redirectOutput(ans.toFile());
-
-        log.info("File was running.. The answer Path:{}, The input Path:{}, The Compiled File:{}", ans, inputPath, programPath);
-
-        Process p = null;
-        try {
-            p = pb.start();
-            boolean finished = p.waitFor(timeout, TimeUnit.MILLISECONDS);
-            if (!finished) {
-                p.descendants().forEach(ProcessHandle::destroyForcibly);
-                p.destroyForcibly();
-                p.waitFor();
-                return Result.fail("TLE");
-            }
-
-            log.info("running success");
-            int exitCode = p.exitValue();
-            if (exitCode != 0) {
-                return Result.fail("Runtime Error: " + exitCode, String.valueOf(Submission.STATUS_RE));
-            }
-            return Result.ok(Files.readString(ans), String.valueOf(Submission.STATUS_AC));
-
-        } catch (IOException | InterruptedException e) {
-            return Result.fail("Runtime Error: " + e, String.valueOf(Submission.STATUS_RE));
-        }
-    }
-
-    @Override
-    public Result<String> compile(String sourceFile, String folderName) {
+    public ResultC compile(String sourceFile, Long userId) {
+        //代码文件的位置
         Path source = Paths.get(rootPath, submitPath).resolve(sourceFile);
-        if (!Files.exists(source)) {
-            return Result.fail("源文件不存在: " + sourceFile, COMPILE_STATUE_COMPILE_ERROR);
-        }
+        if (!Files.exists(source))
+            return new ResultC(null, "源文件不存在", Submission.STATUS_CE);
 
-        Path outputPath = Paths.get(rootPath, compilePath).resolve(sourceFile);
+        Path outputPath = Paths.get(rootPath, compilePath).resolve(String.valueOf(userId));
+        //编译产物的位置
         Path output = getOutputPath(outputPath);
-
+        //连接编译指令
+        log.info("Compiling " + sourceFile + " to " + outputPath);
         List<String> cmd = buildCompileCommand(source, output);
+
         if (cmd == null || cmd.isEmpty()) {
             // Python 等解释型语言，不需要编译 但是需要复制到compiled
             output = output.getParent().resolve("python.out.py");
             try {
                 Files.copy(source, output, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
-                return Result.fail("复制文件失败, AbCompiler : line around 108", COMPILE_STATUE_COMPILE_ERROR);
+                return new ResultC(null, "复制文件失败, 请联系管理员 错误代码: CE101", Submission.STATUS_CE);
             }
-            return Result.ok(relativize(output), COMPILE_STATUE_OK);
+            return new ResultC(relativize(output), "", Submission.STATUS_OK);
         }
 
+        //开始编译
         log.info("编译: {}", String.join(" ", cmd));
-        runProcess(cmd);
+        Result<Void> compileMsg = runCompileProcess(cmd);
+        if(compileMsg.getCode() == Result.FAIL)
+            return new ResultC("", compileMsg.getMsg(), Submission.STATUS_CE);
 
         if (!Files.exists(output)) {
-            return Result.fail("编译产物不存在: " + output, COMPILE_STATUE_COMPILE_ERROR);
-//            throw new CompileException("编译产物不存在: " + output);
+            return new ResultC("", "编译产物不存在: " + output, Submission.STATUS_CE);
         }
 
-        return Result.ok(relativize(output), COMPILE_STATUE_OK);
+
+        return new ResultC(relativize(output), "", Submission.STATUS_OK);
     }
 
-    protected void runProcess(List<String> cmd) {
+    protected Result<Void> runCompileProcess(List<String> cmd) {
         ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.redirectErrorStream(true);
 
@@ -134,16 +157,21 @@ public abstract class AbstractCompiler implements Compiler {
 
             if (!finished) {
                 p.destroyForcibly();
-                throw new CompileException("编译超时（超过 " + compileTimeoutSeconds + " 秒）");
+                return Result.fail("编译超时（超过 " + compileTimeoutSeconds + " 秒）");
+//                throw new CompileException("编译超时（超过 " + compileTimeoutSeconds + " 秒）");
             }
 
             int exitCode = p.exitValue();
             if (exitCode != 0) {
-                throw new CompileException("编译失败，退出码 " + exitCode + ":\n" + output);
+                return Result.fail("编译失败，退出码 " + exitCode + ":\n" + output);
+//                throw new CompileException("编译失败，退出码 " + exitCode + ":\n" + output);
             }
         } catch (IOException | InterruptedException e) {
-            throw new CompileException("编译异常: " + e.getMessage(), e);
+            return Result.fail("编译异常: " + e.getMessage());
+//            throw new CompileException("编译异常: " + e.getMessage(), e);
         }
+
+        return Result.ok();
     }
 
     protected String relativize(Path absolute) {

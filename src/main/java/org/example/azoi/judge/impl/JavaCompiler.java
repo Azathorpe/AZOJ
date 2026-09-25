@@ -1,6 +1,7 @@
 package org.example.azoi.judge.impl;
 
 import org.example.azoi.dto.Result;
+import org.example.azoi.dto.ResultC;
 import org.example.azoi.judge.AbstractCompiler;
 import org.example.azoi.model.Submission;
 import org.example.azoi.utils.exception.BusinessException;
@@ -38,15 +39,15 @@ public class JavaCompiler extends AbstractCompiler {
     @Override
     protected Path getOutputPath(Path source) {
         // Java 编译产物是 .class，路径是 output/Main.class
-        String className = source.getFileName().toString().replace(".java", "");
-        return source.resolveSibling(className + ".class");
+//        String className = source.getFileName().toString().replace(".java", "");
+        return source.resolveSibling("Main.class");
     }
 
     @Override
-    public Result<String> run(String outputFile, String input) {
+    public ResultC run(String sourceFile, String input) {
         try {
             //拼接根路径
-            Path outputPath = Paths.get(rootPath, outputFile);
+            Path outputPath = Paths.get(rootPath, sourceFile);
             Path inputPath = Paths.get(rootPath, problemDir, input);
 
             log.info("Input Path: {}, Output Path: {}", inputPath, outputPath);
@@ -79,19 +80,19 @@ public class JavaCompiler extends AbstractCompiler {
             boolean finished = process.waitFor(10, TimeUnit.SECONDS);
             if (!finished) {
                 process.destroyForcibly();
-                return new Result<>(null, Result.FAIL, Byte.toString(Submission.STATUS_TLE));
+                return new ResultC(null, "TLE", Submission.STATUS_TLE);
             }
             String output = stdoutFuture.get(5, TimeUnit.SECONDS);
             String errors = stderrFuture.get(5, TimeUnit.SECONDS);
 
-            log.info("Result: {}, Errors: {}", output, errors);
+            log.info("Result: {}, Errors: {}",output, errors);
 
-            return new Result<>(output, Result.SUCCESS, Byte.toString(Submission.STATUS_JUDGING));
+            return new ResultC(output, "", Submission.STATUS_OK);
         } catch (IOException e) {
-            return new Result<>(e.getMessage(), Result.FAIL, Byte.toString(Submission.STATUS_CE));
+            return new ResultC("", e.getMessage(), Submission.STATUS_RE);
         } catch (InterruptedException | java.util.concurrent.ExecutionException | TimeoutException e) {
             log.error(e.toString());
-            return new Result<>(e.toString(), Result.FAIL, Byte.toString(Submission.STATUS_TLE));
+            return new ResultC("", e.toString(), Submission.STATUS_TLE);
         }
     }
 }

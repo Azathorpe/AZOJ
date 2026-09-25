@@ -62,7 +62,6 @@ public class Result<T> {
         return new Result<>(obj, FAIL, msg);
     }
 
-
     @Override
     public String toString() {
         return "This result is " + (getCode() == SUCCESS ? "SUCCESS" : "FAIL") + "\n Message: " + getMsg() + "\n obj: " + getObj();
