@@ -10,4 +10,7 @@ public interface ProblemFileRepository extends JpaRepository<ProblemFile, Long> 
 
     long countProblemFileByProblemIdAndFileType(Long problemId, Byte fileType);
 
+    List<ProblemFile> findByProblemIdAndFileType(Long problemId, Byte fileType);
+
+    List<ProblemFile> findByProblemId(Long problemId);
 }

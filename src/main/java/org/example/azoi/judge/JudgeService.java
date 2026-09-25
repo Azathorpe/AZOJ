@@ -6,6 +6,7 @@ import org.example.azoi.dto.ResultC;
 import org.example.azoi.dto.submittransmit.TestPoint;
 import org.example.azoi.judge.impl.CompilerFactory;
 import org.example.azoi.model.Submission;
+import org.example.azoi.model.problem_model.Problem;
 import org.example.azoi.model.problem_model.ProblemFile;
 import org.example.azoi.utils.LangParser;
 import org.example.azoi.utils.exception.BusinessException;
@@ -39,6 +40,8 @@ public class JudgeService {
     private String problemDir;
     @Value("${azoi.storage.submit-dir}")
     private String submitDir;
+    @Value("${azoi.judge.runningOnSandBox}")
+    private boolean runningOnSandBox;
 
     private static final Logger log = LoggerFactory.getLogger(JudgeService.class);
 
@@ -47,13 +50,15 @@ public class JudgeService {
     private final UserRepository userRepository;
     private final ProblemRepository problemRepository;
     private final CompilerFactory compilerFactory;
+    private final SandboxService sandboxService;
 
-    public JudgeService(ProblemFileRepository problemFileRepository, SubmissionRepository submissionRepository, UserRepository userRepository, ProblemRepository problemRepository, CompilerFactory compilerFactory) {
+    public JudgeService(ProblemFileRepository problemFileRepository, SubmissionRepository submissionRepository, UserRepository userRepository, ProblemRepository problemRepository, CompilerFactory compilerFactory, SandboxService sandboxService) {
         this.problemFileRepository = problemFileRepository;
         this.submissionRepository = submissionRepository;
         this.userRepository = userRepository;
         this.problemRepository = problemRepository;
         this.compilerFactory = compilerFactory;
+        this.sandboxService = sandboxService;
     }
 
     public void onCreated() {
@@ -69,6 +74,13 @@ public class JudgeService {
 
     @Transactional
     public void judge(Long submissionId) {
+        if (runningOnSandBox)
+            judge_sandbox(submissionId);
+        else
+            judge_local(submissionId);
+    }
+
+    private void judge_local(Long submissionId) {
         Submission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new RuntimeException("Submission 不存在: " + submissionId));
 
@@ -181,7 +193,7 @@ public class JudgeService {
             }
 
             //如果编译出错了，那就CE
-            if(compiledPath.getStatus() != Submission.STATUS_OK)
+            if (compiledPath.getStatus() != Submission.STATUS_OK)
                 submission.setStatus(compiledPath.getStatus());
 
             submission.setScore((int) Math.round(100.0 * pass / tp.length));
@@ -199,5 +211,53 @@ public class JudgeService {
 
         submissionRepository.save(submission);
         log.info("判题完成: submissionId={}, status={}", submissionId, submission.getStatus());
+    }
+
+    private void judge_sandbox(Long submissionId) {
+        //检查问题是否存在
+        Submission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new BusinessException("未找到提交记录"));
+        Problem problem = problemRepository.findById(submission.getProblemId())
+                .orElseThrow(() -> new BusinessException("未找到问题记录"));
+
+        Path testFileRootPath = Paths.get(rootPath, problemDir);
+
+        //获取所有测试文件
+        List<ProblemFile> testFile = problemFileRepository.findByProblemId(problem.getId());
+
+        List<ProblemFile> inputList = testFile
+                .stream()
+                .filter(f -> f.getFileType() == ProblemFile.FILE_TYPE_IN)
+                .toList();
+
+        List<ProblemFile> outputList = testFile
+                .stream()
+                .filter(f -> f.getFileType() == ProblemFile.FILE_TYPE_OUT)
+                .toList();
+
+        List<String> inputs = inputList.stream()
+                .map(f -> {
+                    try {
+                        return Files.readString(testFileRootPath.resolve(f.getStoragePath()));
+                    } catch (IOException e) {
+                        throw new BusinessException("读取文件失败: " + e);
+                    }
+                })
+                .toList();
+
+        // 2. 调沙盒执行
+        List<SandboxService.SandboxResult> results = sandboxService.compileAndRun(
+                submission.getCode(),
+                submission.getLanguage(),
+                inputs,
+                problem.getTimeLimit(),
+                problem.getMemoryLimit() * 1024  // MB → KB
+        );
+
+        for (SandboxService.SandboxResult result : results) {
+            System.out.println(result.toString());
+        }
+
+        submissionRepository.save(submission);
     }
 }
