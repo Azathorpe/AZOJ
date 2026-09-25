@@ -1,5 +1,7 @@
 package org.example.azoi.dto;
 
+import org.example.azoi.model.Submission;
+
 /**
  * 编译时单独用的Result交换
  */
@@ -22,7 +24,7 @@ public class ResultC {
         return "ResultC{" +
                 "ans='" + ans + '\'' +
                 ", log='" + log + '\'' +
-                ", status=" + status +
+                ", status=" + Submission.parseStatus(this.status) +
                 '}';
     }
 

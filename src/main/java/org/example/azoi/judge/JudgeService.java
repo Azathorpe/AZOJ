@@ -119,6 +119,8 @@ public class JudgeService {
 
             TestPoint[] tp = new TestPoint[testList.size()];
             JudgePointVO[] jp = new JudgePointVO[testList.size()];
+            LinkedHashMap<Byte, Integer> statusPQ = new LinkedHashMap<>();
+
             int pass = 0;
 
             //编译 并且获得编译出的结果
@@ -155,9 +157,13 @@ public class JudgeService {
                     if (out.getStatus() != Submission.STATUS_OK) {
                         log.info("out is FAIL, Reason: {}", Submission.parseStatus(out.getStatus()));
                         tp[i] = new TestPoint(out.getStatus(), out.getLog());
+                        jp[i] = new JudgePointVO(i, out.getStatus(), problem.getTimeLimit(), problem.getMemoryLimit(), out.getLog());
+                        if (statusPQ.containsKey(out.getStatus()))
+                            statusPQ.put(out.getStatus(), statusPQ.get(out.getStatus()) + 1);
+                        else
+                            statusPQ.put(out.getStatus(), 1);
                         continue;
                     }
-                    log.info("out: {}", out);
 
                     String myAnswer = out.getAns();
                     Path standardAnswerPath = Paths.get(rootPath, problemDir).resolve(answer);
@@ -168,9 +174,19 @@ public class JudgeService {
                         tp[i] = new TestPoint(Submission.STATUS_AC, "");
                         jp[i] = new JudgePointVO(i, Submission.STATUS_AC, problem.getTimeLimit(), problem.getMemoryLimit(), "AC");
                         pass++;
+
+                        if (statusPQ.containsKey(Submission.STATUS_AC))
+                            statusPQ.put(Submission.STATUS_AC, statusPQ.get(Submission.STATUS_AC) + 1);
+                        else
+                            statusPQ.put(Submission.STATUS_AC, 1);
                     } else {
                         tp[i] = new TestPoint(out.getStatus(), out.getLog());
                         jp[i] = new JudgePointVO(i, Submission.STATUS_WA, problem.getTimeLimit(), problem.getMemoryLimit(), "WA");
+
+                        if (statusPQ.containsKey(Submission.STATUS_WA))
+                            statusPQ.put(Submission.STATUS_WA, statusPQ.get(Submission.STATUS_WA) + 1);
+                        else
+                            statusPQ.put(Submission.STATUS_WA, 1);
                     }
                 }
             } else {
@@ -179,7 +195,9 @@ public class JudgeService {
 
             // 3. 回写结果
             if (pass != tp.length) {
-                submission.setStatus(Submission.STATUS_WA);
+                //这个状态是最大的状态，我希望让整体代替剩余的，所以我们使用HashMap
+                submission.setStatus(statusPQ.entrySet().iterator().next().getKey());
+//                submission.setStatus(Submission.STATUS_WA);
             } else {
                 submission.setStatus(Submission.STATUS_AC);
                 //将user的通过次数+1

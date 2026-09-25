@@ -144,6 +144,9 @@ public class Submission {
 
     public static String parseStatus(byte status) {
         switch (status) {
+            case STATUS_OK -> {
+                return "NO ERROR";
+            }
             case STATUS_PENDING -> {
                 return "PENDING";
             }
