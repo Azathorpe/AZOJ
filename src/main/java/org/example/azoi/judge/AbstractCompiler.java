@@ -1,5 +1,6 @@
 package org.example.azoi.judge;
 
+import org.example.azoi.dto.Result;
 import org.example.azoi.dto.ResultC;
 import org.example.azoi.model.Submission;
 import org.slf4j.Logger;
@@ -131,7 +132,9 @@ public abstract class AbstractCompiler implements Compiler {
 
         //开始编译
         log.info("编译: {}", String.join(" ", cmd));
-        runCompileProcess(cmd);
+        Result<Void> compileMsg = runCompileProcess(cmd);
+        if(compileMsg.getCode() == Result.FAIL)
+            return new ResultC("", compileMsg.getMsg(), Submission.STATUS_CE);
 
         if (!Files.exists(output)) {
             return new ResultC("", "编译产物不存在: " + output, Submission.STATUS_CE);
@@ -141,7 +144,7 @@ public abstract class AbstractCompiler implements Compiler {
         return new ResultC(relativize(output), "", Submission.STATUS_OK);
     }
 
-    protected void runCompileProcess(List<String> cmd) {
+    protected Result<Void> runCompileProcess(List<String> cmd) {
         ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.redirectErrorStream(true);
 
@@ -154,16 +157,21 @@ public abstract class AbstractCompiler implements Compiler {
 
             if (!finished) {
                 p.destroyForcibly();
-                throw new CompileException("编译超时（超过 " + compileTimeoutSeconds + " 秒）");
+                return Result.fail("编译超时（超过 " + compileTimeoutSeconds + " 秒）");
+//                throw new CompileException("编译超时（超过 " + compileTimeoutSeconds + " 秒）");
             }
 
             int exitCode = p.exitValue();
             if (exitCode != 0) {
-                throw new CompileException("编译失败，退出码 " + exitCode + ":\n" + output);
+                return Result.fail("编译失败，退出码 " + exitCode + ":\n" + output);
+//                throw new CompileException("编译失败，退出码 " + exitCode + ":\n" + output);
             }
         } catch (IOException | InterruptedException e) {
-            throw new CompileException("编译异常: " + e.getMessage(), e);
+            return Result.fail("编译异常: " + e.getMessage());
+//            throw new CompileException("编译异常: " + e.getMessage(), e);
         }
+
+        return Result.ok();
     }
 
     protected String relativize(Path absolute) {

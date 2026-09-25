@@ -1,8 +1,10 @@
 package org.example.azoi.judge;
 
+import com.alibaba.fastjson.JSON;
 import jakarta.persistence.PrePersist;
 import org.example.azoi.dto.Result;
 import org.example.azoi.dto.ResultC;
+import org.example.azoi.dto.submittransmit.JudgePointVO;
 import org.example.azoi.dto.submittransmit.TestPoint;
 import org.example.azoi.judge.impl.CompilerFactory;
 import org.example.azoi.model.Submission;
@@ -81,8 +83,14 @@ public class JudgeService {
     }
 
     private void judge_local(Long submissionId) {
+        log.info("We are running on Local mode...");
+
+
         Submission submission = submissionRepository.findById(submissionId)
-                .orElseThrow(() -> new RuntimeException("Submission 不存在: " + submissionId));
+                .orElseThrow(() -> new BusinessException("Submission 不存在: " + submissionId));
+
+        Problem problem = problemRepository.findById(submission.getProblemId())
+                .orElseThrow(() -> new BusinessException("Problem 不存在: " + submission.getProblemId()));
 
         // 1. 标记为 Judging
         submission.setStatus(Submission.STATUS_JUDGING);
@@ -110,6 +118,7 @@ public class JudgeService {
                     .toList();
 
             TestPoint[] tp = new TestPoint[testList.size()];
+            JudgePointVO[] jp = new JudgePointVO[testList.size()];
             int pass = 0;
 
             //编译 并且获得编译出的结果
@@ -157,25 +166,16 @@ public class JudgeService {
                     //判断答案是否正确
                     if (myAnswer.trim().equals(standardAnswer.trim())) {
                         tp[i] = new TestPoint(Submission.STATUS_AC, "");
+                        jp[i] = new JudgePointVO(i, Submission.STATUS_AC, problem.getTimeLimit(), problem.getMemoryLimit(), "AC");
                         pass++;
                     } else {
                         tp[i] = new TestPoint(out.getStatus(), out.getLog());
+                        jp[i] = new JudgePointVO(i, Submission.STATUS_WA, problem.getTimeLimit(), problem.getMemoryLimit(), "WA");
                     }
                 }
             } else {
                 log.info("编译出错: {}", compiledPath.getLog());
             }
-
-            //如果是Java 那么把Java的输入文件改名为${submissionId}.java
-//            if (LangParser.toExtension(submission.getLanguage()).equals("java")) {
-//                Path javaFile = Paths.get(
-//                        rootPath,
-//                        submitDir,
-//                        Long.toString(submission.getUserId()),
-//                        Long.toString(submission.getProblemId()));
-//                Files.move(javaFile.resolve("Main.java"),
-//                        javaFile.resolve(submission.getId() + ".java"));
-//            }
 
             // 3. 回写结果
             if (pass != tp.length) {
@@ -193,15 +193,20 @@ public class JudgeService {
             }
 
             //如果编译出错了，那就CE
-            if (compiledPath.getStatus() != Submission.STATUS_OK)
+            if (compiledPath.getStatus() != Submission.STATUS_OK) {
                 submission.setStatus(compiledPath.getStatus());
+                for(int i = 0;i < testList.size();i++)
+                    jp[i] = new JudgePointVO(i, Submission.STATUS_CE, problem.getTimeLimit(), problem.getMemoryLimit(), compiledPath.getLog());
+            }
 
             submission.setScore((int) Math.round(100.0 * pass / tp.length));
             submission.setTimeUsed(45);
             submission.setMemoryUsed(2048);
 
             submission.setJudgedAt(Instant.now());
-            submission.setJudgeLog(Arrays.toString(tp));
+            //JudgeLog是每个测试点Log的List
+
+            submission.setJudgeLog(JSON.toJSONString(jp));
 
         } catch (Exception e) {
             log.error("判题失败: submissionId={}", submissionId, e);
@@ -214,6 +219,8 @@ public class JudgeService {
     }
 
     private void judge_sandbox(Long submissionId) {
+        log.info("We are running on Sandbox mode...");
+
         //检查问题是否存在
         Submission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new BusinessException("未找到提交记录"));
